@@ -75,6 +75,25 @@ docker compose up -d
 
 The default Compose file uses SQLite, which is enough for most personal installs. For full SQLite, PostgreSQL, and reverse proxy setup instructions, see the [Setup documentation](https://fuzzygrim.github.io/Yamtrack/setup/).
 
+## 🔌 API
+
+Yamtrack includes a REST API for programmatic access. It uses JWT authentication and supports media CRUD, search, progress tracking, episodes, history, and statistics.
+
+Full API reference: [GitHub Wiki](https://github.com/URD0TH/Yamtrack/wiki/API)
+
+### Quick Example
+
+```bash
+# Get a token
+curl -X POST https://your-instance/api/token/ \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"yourpass"}'
+
+# List movies
+curl https://your-instance/api/media/movie/ \
+  -H "Authorization: Bearer <token>"
+```
+
 ## 💻 Development
 
 Development instructions are available in the [Development documentation](https://fuzzygrim.github.io/Yamtrack/development/).
