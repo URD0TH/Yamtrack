@@ -2,14 +2,18 @@ name: Docker Image
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - "main"
+    paths-ignore:
+      - ".github/**"
   push:
     branches:
       - "main"
     tags:
       - "v*"
-  pull_request:
-    branches:
-      - "main"
+    paths-ignore:
+      - ".github/**"
 
 env:
   REGISTRY: ghcr.io

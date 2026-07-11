@@ -2,9 +2,14 @@ name: Docker Image API
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths-ignore:
+      - ".github/**"
   push:
     branches:
       - "feat/add-api"
+    paths-ignore:
+      - ".github/**"
 
 env:
   REGISTRY: ghcr.io

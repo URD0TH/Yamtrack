@@ -12,10 +12,14 @@
 name: "CodeQL"
 
 on:
-  push:
-    branches: ["main"]
   pull_request:
     branches: ["main"]
+    paths-ignore:
+      - ".github/**"
+  push:
+    branches: ["main"]
+    paths-ignore:
+      - ".github/**"
   schedule:
     - cron: "22 5 * * 5"
 
