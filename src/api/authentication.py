@@ -6,19 +6,19 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 
-class EmailTokenObtainSerializer(TokenObtainPairSerializer):
-    """Token serializer that authenticates by email."""
+class UsernameTokenObtainSerializer(TokenObtainPairSerializer):
+    """Token serializer that authenticates by username."""
 
     def __init__(self, *args, **kwargs):  # noqa: D107
         super().__init__(*args, **kwargs)
-        self.fields["email"] = serializers.EmailField()
-        self.fields.pop("username", None)
+        self.fields["username"] = serializers.CharField()
+        self.fields.pop("email", None)
 
     def validate(self, attrs):
-        """Authenticate by email and return JWT tokens."""
-        email = attrs.get("email")
+        """Authenticate by username and return JWT tokens."""
+        username = attrs.get("username")
         password = attrs.get("password")
-        user = get_user_model().objects.filter(email=email).first()
+        user = get_user_model().objects.filter(username=username).first()
         if not user or not user.check_password(password):
             msg = "No active account found with these credentials"
             raise exceptions.AuthenticationFailed(msg)
@@ -29,7 +29,7 @@ class EmailTokenObtainSerializer(TokenObtainPairSerializer):
         }
 
 
-class EmailTokenObtainPairView(TokenObtainPairView):
-    """View for obtaining JWT tokens using email authentication."""
+class UsernameTokenObtainPairView(TokenObtainPairView):
+    """View for obtaining JWT tokens using username authentication."""
 
-    serializer_class = EmailTokenObtainSerializer
+    serializer_class = UsernameTokenObtainSerializer

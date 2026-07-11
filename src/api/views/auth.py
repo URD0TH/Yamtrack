@@ -8,12 +8,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from api.authentication import EmailTokenObtainPairView
+from api.authentication import UsernameTokenObtainPairView
 from api.serializers.auth import UserSerializer
 
 
 @method_decorator(login_not_required, name="dispatch")
-class CustomTokenObtainPairView(EmailTokenObtainPairView):
+class CustomTokenObtainPairView(UsernameTokenObtainPairView):
     """JWT token obtain view with AllowAny permission."""
 
 
