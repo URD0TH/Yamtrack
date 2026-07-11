@@ -801,6 +801,32 @@ wheels = [
 ]
 
 [[package]]
+name = "djangorestframework"
+version = "3.15.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/2c/ce/31482eb688bdb4e271027076199e1aa8d02507e530b6d272ab8b4481557c/djangorestframework-3.15.2.tar.gz", hash = "sha256:36fe88cd2d6c6bec23dca9804bab2ba5517a8bb9d8f47ebc68981b56840107ad", size = 1067420, upload-time = "2024-06-19T07:59:32.891Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7c/b6/fa99d8f05eff3a9310286ae84c4059b08c301ae4ab33ae32e46e8ef76491/djangorestframework-3.15.2-py3-none-any.whl", hash = "sha256:2b8871b062ba1aefc2de01f773875441a961fefbf79f5eed1e32b2f096944b20", size = 1071235, upload-time = "2024-06-19T07:59:26.106Z" },
+]
+
+[[package]]
+name = "djangorestframework-simplejwt"
+version = "5.3.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+    { name = "djangorestframework" },
+    { name = "pyjwt" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ac/f3/f2ce06fcd1c53e12b26cc5a3ec9e0acd47eb4be02e1d24de50edee5c5abf/djangorestframework_simplejwt-5.3.1.tar.gz", hash = "sha256:6c4bd37537440bc439564ebf7d6085e74c5411485197073f508ebdfa34bc9fae", size = 94266, upload-time = "2023-12-04T06:37:22.761Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f2/ab/88f73cf08d2ad3fb9f71b956dceca5680a57f121e5ce9a604f365877d57e/djangorestframework_simplejwt-5.3.1-py3-none-any.whl", hash = "sha256:381bc966aa46913905629d472cd72ad45faa265509764e20ffd440164c88d220", size = 101339, upload-time = "2023-12-04T06:38:25.362Z" },
+]
+
+[[package]]
 name = "djlint"
 version = "1.36.4"
 source = { registry = "https://pypi.org/simple" }
@@ -2373,6 +2399,8 @@ dependencies = [
     { name = "django-select2" },
     { name = "django-simple-history" },
     { name = "django-widget-tweaks" },
+    { name = "djangorestframework" },
+    { name = "djangorestframework-simplejwt" },
     { name = "gunicorn" },
     { name = "icalendar" },
     { name = "pillow" },
@@ -2434,6 +2462,8 @@ requires-dist = [
     { name = "django-select2", specifier = "~=8.4.8" },
     { name = "django-simple-history", specifier = "~=3.11.0" },
     { name = "django-widget-tweaks", specifier = "~=1.5.1" },
+    { name = "djangorestframework", specifier = "~=3.15.0" },
+    { name = "djangorestframework-simplejwt", specifier = "~=5.3.0" },
     { name = "gunicorn", specifier = "~=25.3.0" },
     { name = "icalendar", specifier = "~=7.0.3" },
     { name = "pillow", specifier = "~=12.2.0" },
