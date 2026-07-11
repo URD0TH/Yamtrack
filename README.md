@@ -75,6 +75,35 @@ docker compose up -d
 
 The default Compose file uses SQLite, which is enough for most personal installs. For full SQLite, PostgreSQL, and reverse proxy setup instructions, see the [Setup documentation](https://fuzzygrim.github.io/Yamtrack/setup/).
 
+## 🔌 API
+
+Yamtrack includes a REST API for programmatic access. It uses JWT authentication and supports media CRUD, search, progress tracking, episodes, history, and statistics.
+
+Full API reference: [GitHub Wiki](https://github.com/URD0TH/Yamtrack/wiki/API)
+
+### Quick Example
+
+```bash
+# Get a token
+curl -X POST https://your-instance/api/token/ \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"yourpass"}'
+
+# List movies
+curl https://your-instance/api/media/movie/ \
+  -H "Authorization: Bearer <token>"
+```
+
+## 🤖 MCP Server
+
+Yamtrack includes an [MCP (Model Context Protocol)](https://modelcontextprotocol.org) server for AI assistants. It exposes the same media tracking capabilities as tools for Claude Desktop, OpenCode, Typem, Hermes, and any MCP-compatible client.
+
+- **stdio**: `python src/manage.py run_mcp --token <jwt>` for local clients
+- **HTTP**: served at `/mcp/` with JWT auth for remote clients
+- **Tools**: search, list, create, update, track progress, stats, history
+
+Full MCP reference: [GitHub Wiki](https://github.com/URD0TH/Yamtrack/wiki/MCP)
+
 ## 💻 Development
 
 Development instructions are available in the [Development documentation](https://fuzzygrim.github.io/Yamtrack/development/).
