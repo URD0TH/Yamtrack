@@ -39,6 +39,7 @@ urlpatterns = [
                             )
                         },
                     ),
+                    "yamtrack_mcp.health.MCPHealthCheck",
                 ]
             )
         ),
