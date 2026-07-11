@@ -94,6 +94,16 @@ curl https://your-instance/api/media/movie/ \
   -H "Authorization: Bearer <token>"
 ```
 
+## 🤖 MCP Server
+
+Yamtrack includes an [MCP (Model Context Protocol)](https://modelcontextprotocol.org) server for AI assistants. It exposes the same media tracking capabilities as tools for Claude Desktop, OpenCode, Typem, Hermes, and any MCP-compatible client.
+
+- **stdio**: `python src/manage.py run_mcp --token <jwt>` for local clients
+- **HTTP**: served at `/mcp/` with JWT auth for remote clients
+- **Tools**: search, list, create, update, track progress, stats, history
+
+Full MCP reference: [GitHub Wiki](https://github.com/URD0TH/Yamtrack/wiki/MCP)
+
 ## 💻 Development
 
 Development instructions are available in the [Development documentation](https://fuzzygrim.github.io/Yamtrack/development/).
