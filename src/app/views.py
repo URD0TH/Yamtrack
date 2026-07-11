@@ -105,20 +105,22 @@ def _is_released_home_media(media, section_key):
     return not _is_incoming_media(media)
 
 
-def _get_home_section_media_types(
+def _get_home_media_types(
     request,
     sort_by,
     section_key,
     items_limit,
+    specific_media_type=None,
     *,
     hide_unreleased=False,
 ):
-    """Return media types for a home section."""
+    """Return media types for a home section, or one type's load-more page."""
     media_types = BasicMedia.objects.get_home_status(
         user=request.user,
         status=section_key,
         sort_by=sort_by,
         items_limit=None if hide_unreleased else items_limit,
+        specific_media_type=specific_media_type,
     )
 
     if not hide_unreleased:
@@ -130,43 +132,8 @@ def _get_home_section_media_types(
             lambda media: _is_released_home_media(media, section_key),
         ),
         items_limit,
+        page_start=items_limit if specific_media_type else 0,
     )
-
-
-def _get_home_load_more_media_types(
-    request,
-    sort_by,
-    section_key,
-    items_limit,
-    media_type_to_load,
-    *,
-    hide_unreleased=False,
-):
-    """Return load-more payload for a specific home section/media type."""
-    media_types = BasicMedia.objects.get_home_status(
-        user=request.user,
-        status=section_key,
-        sort_by=sort_by,
-        items_limit=None if hide_unreleased else items_limit,
-        specific_media_type=media_type_to_load,
-    )
-
-    if not hide_unreleased:
-        return media_types
-
-    return _paginate_home_media_types(
-        _filter_home_media_types(
-            media_types,
-            lambda media: _is_released_home_media(media, section_key),
-        ),
-        items_limit,
-        page_start=items_limit,
-    )
-
-
-def _get_home_section_keys():
-    """Return ordered home section keys for current user."""
-    return [Status.IN_PROGRESS.value, Status.PLANNING.value]
 
 
 @require_GET
@@ -176,18 +143,15 @@ def home(request):
     media_type_to_load = request.GET.get("load_media_type")
     section_to_load = request.GET.get("load_status", Status.IN_PROGRESS.value)
     hide_unreleased_param = request.GET.get("hide_unreleased")
-    if hide_unreleased_param is not None:
-        hide_unreleased = request.user.update_preference(
-            "home_hide_unreleased",
-            hide_unreleased_param == "1",
-        )
-    else:
-        hide_unreleased = request.user.home_hide_unreleased
+    hide_unreleased = request.user.update_preference(
+        "home_hide_unreleased",
+        None if hide_unreleased_param is None else hide_unreleased_param == "true",
+    )
     items_limit = 14
 
     # If this is an HTMX request to load more items for a specific media type
     if request.headers.get("HX-Request") and media_type_to_load:
-        list_by_type = _get_home_load_more_media_types(
+        list_by_type = _get_home_media_types(
             request,
             sort_by,
             section_to_load,
@@ -204,14 +168,13 @@ def home(request):
                     {"items": [], "total": 0},
                 ),
                 "home_status": section_to_load,
-                "hide_unreleased": hide_unreleased,
             },
         )
 
     home_sections = [
         _build_home_section(
             section_key,
-            _get_home_section_media_types(
+            _get_home_media_types(
                 request,
                 sort_by,
                 section_key,
@@ -219,7 +182,7 @@ def home(request):
                 hide_unreleased=hide_unreleased,
             ),
         )
-        for section_key in _get_home_section_keys()
+        for section_key in (Status.IN_PROGRESS.value, Status.PLANNING.value)
     ]
 
     context = {
@@ -277,7 +240,6 @@ def progress_edit(request, media_type, instance_id):
 
     context = {
         "media": media,
-        "hide_unreleased": hide_unreleased,
         "home_status": home_status,
     }
     return render(

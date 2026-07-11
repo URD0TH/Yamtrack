@@ -72,7 +72,7 @@
       {% if user.progress_bar %}<div class="h-[5px] {{ Status.PLANNING.value|status_background_color }}"></div>{% endif %}
     {% else %}
       <div id="progress-{{ media.item.media_type }}-{{ media.id }}">
-        {% include "app/components/progress_changer.html" with media=media user=user csrf_token=csrf_token MediaTypes=MediaTypes hide_unreleased=hide_unreleased home_status=home_status only %}
+        {% include "app/components/progress_changer.html" with media=media user=user csrf_token=csrf_token MediaTypes=MediaTypes home_status=home_status only %}
       </div>
     {% endif %}
 
