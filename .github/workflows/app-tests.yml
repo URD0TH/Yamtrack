@@ -43,15 +43,15 @@ jobs:
     steps:
       - name: Check workflow verification result
         if: |
-          github.event_name == 'pull_request_target' && 
+          github.event_name == 'pull_request_target' &&
           needs.check-workflow-changes.result == 'failure'
         run: exit 1
 
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v10
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -85,6 +85,6 @@ jobs:
           uv run coverage xml
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v8
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

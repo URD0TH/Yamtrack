@@ -4,6 +4,7 @@ import json
 import sys
 import warnings
 import zoneinfo
+from datetime import timedelta
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
@@ -131,6 +132,9 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "django.contrib.humanize",
+    "rest_framework",
+    "api",
+    "yamtrack_mcp",
 ]
 
 MIDDLEWARE = [
@@ -514,6 +518,27 @@ SELECT2_CSS = [
     "css/libraries/select2-4.1.0.min.css",
 ]
 SELECT2_THEME = "tailwindcss-4"
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 24,
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+    ],
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
 
 # Celery settings
 
