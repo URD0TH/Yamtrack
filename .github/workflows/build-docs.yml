@@ -2,8 +2,7 @@ name: build-docs
 on:
   push:
     branches:
-      - dev
-      - release
+      - main
 permissions:
   contents: write
 concurrency:
@@ -34,5 +33,5 @@ jobs:
       - name: Deploy versioned docs
         run: uv run mike deploy --push ${{ github.ref_name }}
       - name: Set default docs version
-        if: github.ref_name == 'release'
-        run: uv run mike set-default --push release
+        if: github.ref_name == 'main'
+        run: uv run mike set-default --push main
