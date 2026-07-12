@@ -31,11 +31,11 @@ class Command(BaseCommand):
             user = get_user_from_jwt(token)
             if user:
                 current_user.set(user)
-                self.stdout.write(f"MCP stdio authenticated as {user.email}")
+                self.stderr.write(f"MCP stdio authenticated as {user.email}")
             else:
-                self.stdout.write("MCP stdio: invalid token, running without auth")
+                self.stderr.write("MCP stdio: invalid token, running without auth")
         else:
             msg = "MCP stdio running without authentication (read-only tools)"
-            self.stdout.write(msg)
+            self.stderr.write(msg)
 
         mcp.run(transport="stdio")
