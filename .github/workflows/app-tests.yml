@@ -4,9 +4,6 @@ on:
   pull_request:
     paths-ignore:
       - ".github/workflows/**"
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
