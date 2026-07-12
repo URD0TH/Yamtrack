@@ -37,6 +37,9 @@ jobs:
           pattern: trivy-report|scan-results
           merge-multiple: true
 
+      - name: Debug artifact structure
+        run: find artifacts -type f 2>/dev/null || echo "No artifacts dir"
+
       - name: Extract summary from scan results
         id: summary
         run: |
