@@ -1,38 +1,23 @@
-name: Docker Image
+name: Build and Scan Container
 
 on:
-  workflow_dispatch:
-  pull_request:
-    branches:
-      - "main"
-    paths-ignore:
-      - ".github/**"
   push:
-    branches:
-      - "main"
     tags:
       - "v*"
-    paths-ignore:
-      - ".github/**"
+  workflow_dispatch:
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+permissions:
+  contents: write
 
 jobs:
-  build:
+  build-and-scan:
     runs-on: ubuntu-latest
-    if: github.actor != 'dependabot[bot]'
-    permissions:
-      contents: write
-      packages: write
-      id-token: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
-          fetch-depth: 0 # This ensures all tags are fetched for git describe
+          fetch-depth: 0
 
       - name: Get version from git
         id: get-version
@@ -44,63 +29,105 @@ jobs:
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-
-      - name: Extract Docker metadata tags
-        id: meta
-        uses: docker/metadata-action@v6
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=ref,event=tag
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-
-      # Determine if we should push the image
-      - name: Set push flag
-        id: push-flag
-        run: |
-          if [[ "${{ github.event_name }}" != "pull_request" || "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.repository }}" ]]; then
-            echo "PUSH=true" >> $GITHUB_OUTPUT
-          else
-            echo "PUSH=false" >> $GITHUB_OUTPUT
-          fi
-
-      # Only log in if we're going to push
-      - name: Log into registry ${{ env.REGISTRY }}
-        if: steps.push-flag.outputs.PUSH == 'true'
-        uses: docker/login-action@v4
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push Docker image
-        id: build-and-push
+      - name: Build local image
         uses: docker/build-push-action@v7
         with:
           context: .
-          push: ${{ steps.push-flag.outputs.PUSH }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          provenance: true
-          sbom: true
-          platforms: linux/amd64,linux/arm64
+          load: true
+          push: false
+          tags: local-image:test
           build-args: |
             VERSION=${{ steps.get-version.outputs.VERSION }}
 
-      - name: Create GitHub Release
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
+      - name: Run Trivy scan
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
-          generate_release_notes: true
-          draft: false
-          prerelease: ${{ contains(github.ref_name, '-') }}
+          image-ref: local-image:test
+          format: json
+          output: trivy-report.json
+          severity: CRITICAL,HIGH,MEDIUM,LOW
+
+      - name: Parse scan results
+        id: parse
+        run: |
+          CRITICAL=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-report.json 2>/dev/null)
+          HIGH=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")] | length' trivy-report.json 2>/dev/null)
+          MEDIUM=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="MEDIUM")] | length' trivy-report.json 2>/dev/null)
+          LOW=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="LOW")] | length' trivy-report.json 2>/dev/null)
+          TOTAL=$(( CRITICAL + HIGH + MEDIUM + LOW ))
+          echo "CRITICAL=${CRITICAL}" >> $GITHUB_OUTPUT
+          echo "HIGH=${HIGH}" >> $GITHUB_OUTPUT
+          echo "MEDIUM=${MEDIUM}" >> $GITHUB_OUTPUT
+          echo "LOW=${LOW}" >> $GITHUB_OUTPUT
+          echo "TOTAL=${TOTAL}" >> $GITHUB_OUTPUT
+
+      - name: Generate scan report
+        id: report
+        run: |
+          VERSION="${{ steps.get-version.outputs.VERSION }}"
+          DATE=$(date -u +"%Y-%m-%d %H:%M UTC")
+          CRITICAL="${{ steps.parse.outputs.CRITICAL }}"
+          HIGH="${{ steps.parse.outputs.HIGH }}"
+          MEDIUM="${{ steps.parse.outputs.MEDIUM }}"
+          LOW="${{ steps.parse.outputs.LOW }}"
+          TOTAL="${{ steps.parse.outputs.TOTAL }}"
+          printf '%s\n' \
+            "# Trivy Scan Results" \
+            "" \
+            "- **Version**: \`${VERSION}\`" \
+            "- **Date**: ${DATE}" \
+            "" \
+            "| Severity | Count |" \
+            "|----------|-------|" \
+            "| Critical | ${CRITICAL} |" \
+            "| High | ${HIGH} |" \
+            "| Medium | ${MEDIUM} |" \
+            "| Low | ${LOW} |" \
+            "| **Total** | **${TOTAL}** |" \
+            "" \
+            "> Trivy scan: ${TOTAL} vulns (${CRITICAL} critical, ${HIGH} high, ${MEDIUM} medium, ${LOW} low)" > scan_results.md
+          echo "SHORT_SUMMARY=Trivy scan: ${TOTAL} vulns (${CRITICAL} critical, ${HIGH} high, ${MEDIUM} medium, ${LOW} low)" >> $GITHUB_OUTPUT
+
+      - name: Update README with release block
+        run: |
+          VERSION="${{ steps.get-version.outputs.VERSION }}"
+          RELEASE_URL="https://github.com/${{ github.repository }}/releases/tag/${VERSION}"
+          ACTIONS_URL="https://github.com/${{ github.repository }}/actions"
+          cat > release_block.md <<BLOCK
+<!-- START_RELEASE_BLOCK -->
+### 📦 Imágenes Disponibles
+
+| Versión | Last Published |
+|---------|----------------|
+| \`latest\` | ✅ [Build latest](${ACTIONS_URL}) |
+| \`${VERSION}\` | ✅ [Ver detalles](${RELEASE_URL}) |
+
+## 🔐 Seguridad
+🔗 [Ver último reporte](${ACTIONS_URL})
+<!-- END_RELEASE_BLOCK -->
+BLOCK
+          awk '
+            /START_RELEASE_BLOCK/ { skip=1; while ((getline line < "release_block.md") > 0) print line; next }
+            /END_RELEASE_BLOCK/ && skip { skip=0; next }
+            !skip { print }
+          ' README.md > README.tmp && mv README.tmp README.md
+          rm -f release_block.md
+
+      - name: Commit README update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git diff --cached --quiet || git commit -m "docs: update release block [skip ci]" && git push
+
+      - name: Upload Trivy report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-report
+          path: trivy-report.json
+
+      - name: Upload scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-results
+          path: scan_results.md

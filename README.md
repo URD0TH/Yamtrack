@@ -75,6 +75,17 @@ docker compose up -d
 
 The default Compose file uses SQLite, which is enough for most personal installs. For full SQLite, PostgreSQL, and reverse proxy setup instructions, see the [Setup documentation](https://fuzzygrim.github.io/Yamtrack/setup/).
 
+<!-- START_RELEASE_BLOCK -->
+### 📦 Imágenes Disponibles
+
+| Versión | Last Published |
+|---------|----------------|
+| `latest` | ✅ [Build latest](https://github.com/URD0TH/Yamtrack/actions) |
+
+## 🔐 Seguridad
+🔗 [Ver último reporte](https://github.com/URD0TH/Yamtrack/actions)
+<!-- END_RELEASE_BLOCK -->
+
 ## 🔌 API
 
 Yamtrack includes a REST API for programmatic access. It uses JWT authentication and supports media CRUD, search, progress tracking, episodes, history, and statistics.
