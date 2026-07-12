@@ -1,420 +1,114 @@
-## MCP Tools Reference
-[
-  {
-    "server": "yamtrack",
-    "name": "search_media",
-    "description": "Search for media across external providers.\n\n    Supported media types: tv, movie, anime, manga, game, book, comic, boardgame.\n    ",
-    "inputSchema": {
-      "properties": {
-        "query": {
-          "title": "Query",
-          "type": "string"
-        },
-        "media_type": {
-          "default": "tv",
-          "title": "Media Type",
-          "type": "string"
-        },
-        "page": {
-          "default": 1,
-          "title": "Page",
-          "type": "integer"
-        },
-        "source": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Source"
-        }
-      },
-      "required": [
-        "query"
-      ],
-      "title": "search_mediaArguments",
-      "type": "object"
-    }
-  },
-  {
-    "server": "yamtrack",
-    "name": "get_details",
-    "description": "Get metadata details for a media item from an external provider.",
-    "inputSchema": {
-      "properties": {
-        "source": {
-          "title": "Source",
-          "type": "string"
-        },
-        "media_type": {
-          "title": "Media Type",
-          "type": "string"
-        },
-        "media_id": {
-          "title": "Media Id",
-          "type": "string"
-        },
-        "season_number": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Season Number"
-        }
-      },
-      "required": [
-        "source",
-        "media_type",
-        "media_id"
-      ],
-      "title": "get_detailsArguments",
-      "type": "object"
-    }
-  },
-  {
-    "server": "yamtrack",
-    "name": "list_tracked_media",
-    "description": "List media tracked by the authenticated user.\n\n    Status options: All, Completed, In progress, Planning, Paused, Dropped.\n    ",
-    "inputSchema": {
-      "properties": {
-        "media_type": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Media Type"
-        },
-        "status": {
-          "default": "All",
-          "title": "Status",
-          "type": "string"
-        },
-        "sort": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Sort"
-        },
-        "search": {
-          "default": "",
-          "title": "Search",
-          "type": "string"
-        }
-      },
-      "title": "list_tracked_mediaArguments",
-      "type": "object"
-    }
-  },
-  {
-    "server": "yamtrack",
-    "name": "create_entry",
-    "description": "Start tracking a new media item from an external provider.\n\n    Status defaults to \"Completed\" if omitted. Score is 0-10.\n    ",
-    "inputSchema": {
-      "properties": {
-        "media_id": {
-          "title": "Media Id",
-          "type": "string"
-        },
-        "source": {
-          "title": "Source",
-          "type": "string"
-        },
-        "media_type": {
-          "title": "Media Type",
-          "type": "string"
-        },
-        "status": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Status"
-        },
-        "score": {
-          "anyOf": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Score"
-        },
-        "progress": {
-          "default": 0,
-          "title": "Progress",
-          "type": "integer"
-        },
-        "notes": {
-          "default": "",
-          "title": "Notes",
-          "type": "string"
-        }
-      },
-      "required": [
-        "media_id",
-        "source",
-        "media_type"
-      ],
-      "title": "create_entryArguments",
-      "type": "object"
-    }
-  },
-  {
-    "server": "yamtrack",
-    "name": "update_entry",
-    "description": "Update status, score, progress, or notes for a tracked media item.",
-    "inputSchema": {
-      "properties": {
-        "media_type": {
-          "title": "Media Type",
-          "type": "string"
-        },
-        "instance_id": {
-          "title": "Instance Id",
-          "type": "integer"
-        },
-        "status": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Status"
-        },
-        "score": {
-          "anyOf": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Score"
-        },
-        "progress": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Progress"
-        },
-        "notes": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Notes"
-        }
-      },
-      "required": [
-        "media_type",
-        "instance_id"
-      ],
-      "title": "update_entryArguments",
-      "type": "object"
-    }
-  },
-  {
-    "server": "yamtrack",
-    "name": "update_progress",
-    "description": "Increase or decrease progress on a media item.\n\n    Operation must be 'increase' or 'decrease'.\n    ",
-    "inputSchema": {
-      "properties": {
-        "media_type": {
-          "title": "Media Type",
-          "type": "string"
-        },
-        "instance_id": {
-          "title": "Instance Id",
-          "type": "integer"
-        },
-        "operation": {
-          "title": "Operation",
-          "type": "string"
-        }
-      },
-      "required": [
-        "media_type",
-        "instance_id",
-        "operation"
-      ],
-      "title": "update_progressArguments",
-      "type": "object"
-    }
-  },
-  {
-    "server": "yamtrack",
-    "name": "update_score",
-    "description": "Update the score (0-10) for a tracked media item.",
-    "inputSchema": {
-      "properties": {
-        "media_type": {
-          "title": "Media Type",
-          "type": "string"
-        },
-        "instance_id": {
-          "title": "Instance Id",
-          "type": "integer"
-        },
-        "score": {
-          "title": "Score",
-          "type": "number"
-        }
-      },
-      "required": [
-        "media_type",
-        "instance_id",
-        "score"
-      ],
-      "title": "update_scoreArguments",
-      "type": "object"
-    }
-  },
-  {
-    "server": "yamtrack",
-    "name": "get_home",
-    "description": "Get dashboard data: in-progress and planning media.",
-    "inputSchema": {
-      "properties": {
-        "sort": {
-          "default": "upcoming",
-          "title": "Sort",
-          "type": "string"
-        }
-      },
-      "title": "get_homeArguments",
-      "type": "object"
-    }
-  },
-  {
-    "server": "yamtrack",
-    "name": "get_statistics",
-    "description": "Get aggregated statistics for the authenticated user.\n\n    Dates in YYYY-MM-DD format. Use 'all'/'all' for no filter.\n    Defaults to last 365 days.\n    ",
-    "inputSchema": {
-      "properties": {
-        "start_date": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Start Date"
-        },
-        "end_date": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "End Date"
-        }
-      },
-      "title": "get_statisticsArguments",
-      "type": "object"
-    }
-  },
-  {
-    "server": "yamtrack",
-    "name": "get_history",
-    "description": "Get change history for a tracked media item.",
-    "inputSchema": {
-      "properties": {
-        "source": {
-          "title": "Source",
-          "type": "string"
-        },
-        "media_type": {
-          "title": "Media Type",
-          "type": "string"
-        },
-        "media_id": {
-          "title": "Media Id",
-          "type": "string"
-        },
-        "season_number": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Season Number"
-        },
-        "episode_number": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Episode Number"
-        }
-      },
-      "required": [
-        "source",
-        "media_type",
-        "media_id"
-      ],
-      "title": "get_historyArguments",
-      "type": "object"
-    }
-  }
-]
+# MCP Tools Reference
+
+Reference for the Yamtrack MCP server tools. All tools require a JWT except the read-only ones noted.
+
+## search_media
+
+Search external providers for media.
+
+| Param | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `query` | string | yes | — | Search query. |
+| `media_type` | string | no | `tv` | `tv`, `movie`, `anime`, `manga`, `game`, `book`, `comic`, `boardgame`. |
+| `page` | integer | no | `1` | Result page. |
+| `source` | string \| null | no | `null` | Restrict to a source (e.g. `tmdb`). |
+
+## get_details
+
+Get metadata for a media item from an external provider.
+
+| Param | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `source` | string | yes | — | Provider (`tmdb`, `mal`, `igdb`, ...). |
+| `media_type` | string | yes | — | Media type. |
+| `media_id` | string | yes | — | Provider media id. |
+| `season_number` | integer \| null | no | `null` | Season (for tv/anime). |
+
+## list_tracked_media
+
+List media tracked by the authenticated user.
+
+| Param | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `media_type` | string \| null | no | `null` | Filter by media type. |
+| `status` | string | no | `All` | `All`, `Completed`, `In progress`, `Planning`, `Paused`, `Dropped`. |
+| `sort` | string \| null | no | `null` | Sort key. |
+| `search` | string | no | `""` | Free-text filter. |
+
+## create_entry
+
+Start tracking a new media item from an external provider.
+
+| Param | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `media_id` | string | yes | — | Provider media id. |
+| `source` | string | yes | — | Provider. |
+| `media_type` | string | yes | — | Media type. |
+| `status` | string \| null | no | `null` | Defaults to `Completed` if omitted. |
+| `score` | number \| null | no | `null` | 0–10. |
+| `progress` | integer | no | `0` | Progress count. |
+| `notes` | string | no | `""` | Free-text note. |
+
+## update_entry
+
+Update status, score, progress, or notes for a tracked item.
+
+| Param | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `media_type` | string | yes | — | Media type. |
+| `instance_id` | integer | yes | — | Tracked item id. |
+| `status` | string \| null | no | `null` | New status. |
+| `score` | number \| null | no | `null` | 0–10. |
+| `progress` | integer \| null | no | `null` | Progress count. |
+| `notes` | string \| null | no | `null` | Free-text note. |
+
+## update_progress
+
+Increase or decrease progress on a tracked item.
+
+| Param | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `media_type` | string | yes | — | Media type. |
+| `instance_id` | integer | yes | — | Tracked item id. |
+| `operation` | string | yes | — | `increase` or `decrease`. |
+
+## update_score
+
+Update the score (0–10) for a tracked item.
+
+| Param | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `media_type` | string | yes | — | Media type. |
+| `instance_id` | integer | yes | — | Tracked item id. |
+| `score` | number | yes | — | 0–10. |
+
+## get_home
+
+Dashboard data: in-progress and planning media.
+
+| Param | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `sort` | string | no | `upcoming` | Sort key. |
+
+## get_statistics
+
+Aggregated statistics for the authenticated user.
+
+| Param | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `start_date` | string \| null | no | `null` | `YYYY-MM-DD`. Use `all` for no filter. |
+| `end_date` | string \| null | no | `null` | `YYYY-MM-DD`. Use `all` for no filter. |
+
+Defaults to the last 365 days.
+
+## get_history
+
+Change history for a tracked media item.
+
+| Param | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `source` | string | yes | — | Provider. |
+| `media_type` | string | yes | — | Media type. |
+| `media_id` | string | yes | — | Provider media id. |
+| `season_number` | integer \| null | no | `null` | Season. |
+| `episode_number` | integer \| null | no | `null` | Episode. |
