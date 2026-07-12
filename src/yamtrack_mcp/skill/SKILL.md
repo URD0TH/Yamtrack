@@ -133,6 +133,8 @@ See `references/mcp_tools.md` for full input schemas.
 
 ## Workflows
 
+See `references/workflows.md` for full parameters, steps, and examples.
+
 ### Research and Track
 Search for media and start tracking it in "Planning" status if not already present.
 **Location**: `skill/scripts/workflows/research_and_track.py`
