@@ -1,4 +1,4 @@
-bind = "localhost:8001"
+bind = "0.0.0.0:8001"
 preload_app = True
 timeout = 200
 max_requests = 500
