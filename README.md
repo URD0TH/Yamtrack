@@ -99,7 +99,7 @@ Full API reference: [GitHub Wiki](https://github.com/URD0TH/Yamtrack/wiki/API)
 # Get a token
 curl -X POST https://your-instance/api/token/ \
   -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"yourpass"}'
+  -d '{"username":"your-username","password":"yourpass"}'
 
 # List movies
 curl https://your-instance/api/media/movie/ \
