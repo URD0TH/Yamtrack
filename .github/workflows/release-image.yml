@@ -31,7 +31,7 @@ jobs:
           echo "Using version: $VERSION, image: $IMAGE"
 
       - name: Download Trivy report
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: trivy-report
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -39,7 +39,7 @@ jobs:
           path: artifacts
 
       - name: Download scan results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: scan-results
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -84,7 +84,7 @@ jobs:
             VERSION=${{ steps.get-version.outputs.VERSION }}
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.get-version.outputs.VERSION }}
           name: Release ${{ steps.get-version.outputs.VERSION }}
