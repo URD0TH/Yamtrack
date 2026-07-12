@@ -1,7 +1,8 @@
 skill:
   name: yamtrack-mcp-workflow
-  version: 0.1.0
+  version: 0.2.0
   files:
-    - scripts/
     - SKILL.md
+    - scripts/
     - references/
+    - mcp_config.json

@@ -5,7 +5,7 @@ Requires a running container exposing the MCP server on :8002
 
 Usage:
     export YAMTRACK_JWT="<valid access token>"
-    python src/yamtrack_mcp/scripts/mcp_smoke_test.py
+    python src/yamtrack_mcp/skill/scripts/mcp_smoke_test.py
 """
 
 import asyncio
