@@ -145,11 +145,3 @@ Aggregate stats across timeframes for comparison.
 from skill.scripts.workflows.batch_stats import get_stats_range
 stats = await get_stats_range(start_date="2025-01-01", end_date="2025-12-31")
 ```
-
-## Dev Scripts
-
-Validation scripts in `skill/scripts/` (not deployed) hit the running container over HTTP — they do NOT mutate it:
-
-- `mcp_client.py` — minimal HTTP client.
-- `mcp_introspector.py` — dump tool schemas to `introspection.json` (generated dev artifact; the curated reference is `references/mcp_tools.md`).
-- `mcp_smoke_test.py` — smoke test; reads `YAMTRACK_JWT` from the environment.
