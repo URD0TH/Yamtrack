@@ -108,13 +108,17 @@ curl https://your-instance/api/media/movie/ \
 
 ## 🤖 MCP Server
 
-Yamtrack includes an [MCP (Model Context Protocol)](https://modelcontextprotocol.org) server for AI assistants. It exposes the same media tracking capabilities as tools for Claude Desktop, OpenCode, Typem, Hermes, and any MCP-compatible client.
+Yamtrack includes an [MCP (Model Context Protocol)](https://modelcontextprotocol.org) server for AI assistants. It exposes the same media tracking capabilities as tools for Claude Desktop, OpenCode, VS Code, Hermes, Typem, and any MCP-compatible client.
 
-- **stdio**: `python src/manage.py run_mcp --token <jwt>` for local clients
-- **HTTP**: served at `/mcp/` with JWT auth for remote clients
-- **Tools**: search, list, create, update, track progress, stats, history
+- **HTTP**: Streamable HTTP at `/mcp` (uvicorn on port `8002`, also proxied at `:8000/mcp/`) with JWT auth — used natively by OpenCode, VS Code, and Hermes.
+- **stdio**: `python src/manage.py run_mcp` (pass the token via `YAMTRACK_JWT` or `--token`) for local clients or as a bridge for stdio-only clients like Claude Desktop.
+- **Tools**: `search_media`, `get_details`, `list_tracked_media`, `get_home`, `get_history`, `create_entry`, `update_entry`, `update_progress`, `update_score`, `get_statistics`.
 
 Full MCP reference: [GitHub Wiki](https://github.com/URD0TH/Yamtrack/wiki/MCP)
+
+### 🧩 MCP Skill
+
+A packaged skill (`yamtrack-mcp-workflow`) ships ready-to-use workflows on top of the MCP server: **research-and-track** (search then plan new media) and **batch statistics** (aggregate stats across date ranges). It lives in [`src/yamtrack_mcp/skill/`](src/yamtrack_mcp/skill/) and is documented in the [MCP wiki](https://github.com/URD0TH/Yamtrack/wiki/MCP).
 
 ## 💻 Development
 
