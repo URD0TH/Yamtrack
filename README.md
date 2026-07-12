@@ -81,7 +81,7 @@ The default Compose file uses SQLite, which is enough for most personal installs
 | Version | Last Published |
 |---------|----------------|
 | `latest` | ✅ [Build latest](https://github.com/URD0TH/Yamtrack/actions) |
-| `v0.25.3.2-6-g82e9cbbc` | ✅ [Ver detalles](https://github.com/URD0TH/Yamtrack/releases/tag/v0.25.3.2-6-g82e9cbbc) |
+| `v0.25.3.2-16-g6658fe62` | ✅ [Ver detalles](https://github.com/URD0TH/Yamtrack/releases/tag/v0.25.3.2-16-g6658fe62) |
 
 ## 🔐 Seguridad
 🔗 [Ver ultimo reporte](https://github.com/URD0TH/Yamtrack/actions)
