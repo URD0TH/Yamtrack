@@ -220,7 +220,7 @@ class HomeViewTests(TestCase):
 
     def test_home_view_hides_unreleased_when_filter_enabled(self):
         """Test home view can hide unreleased media in existing sections."""
-        response = self.client.get(reverse("home") + "?hide_unreleased=1")
+        response = self.client.get(reverse("home") + "?hide_unreleased=true")
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.context["hide_unreleased"])
@@ -257,7 +257,7 @@ class HomeViewTests(TestCase):
             progress=0,
         )
 
-        response = self.client.get(reverse("home") + "?hide_unreleased=1")
+        response = self.client.get(reverse("home") + "?hide_unreleased=true")
 
         self.assertEqual(response.status_code, 200)
         in_progress_section = next(
@@ -268,6 +268,41 @@ class HomeViewTests(TestCase):
         movies = in_progress_section["media_types"][MediaTypes.MOVIE.value]["items"]
         self.assertTrue(
             any(media.item.media_id == "in-progress-no-release" for media in movies),
+        )
+
+    def test_home_view_hides_planning_with_upcoming_release(self):
+        """Planning media with a scheduled future release is hidden when filtered."""
+        upcoming_item = Item.objects.create(
+            media_id="planning-with-release",
+            source=Sources.TMDB.value,
+            media_type=MediaTypes.MOVIE.value,
+            title="Upcoming Movie",
+            image="http://example.com/image.jpg",
+        )
+        Movie.objects.create(
+            item=upcoming_item,
+            user=self.user,
+            status=Status.PLANNING.value,
+        )
+        Event.objects.create(
+            item=upcoming_item,
+            datetime=timezone.now() + timezone.timedelta(days=1),
+        )
+
+        response = self.client.get(reverse("home") + "?hide_unreleased=true")
+
+        self.assertEqual(response.status_code, 200)
+        planning_section = next(
+            section
+            for section in response.context["home_sections"]
+            if section["key"] == Status.PLANNING.value
+        )
+        movies = planning_section["media_types"][MediaTypes.MOVIE.value]["items"]
+        self.assertTrue(
+            any(media.item.media_id == "10" for media in movies),
+        )
+        self.assertFalse(
+            any(media.item.media_id == "planning-with-release" for media in movies),
         )
 
     def test_home_view_htmx_load_more_preserves_hide_unreleased(self):
