@@ -1,7 +1,9 @@
 import json
 import logging
 from datetime import datetime
+from functools import wraps
 
+from asgiref.sync import sync_to_async
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
@@ -25,6 +27,20 @@ logger = logging.getLogger(__name__)
 mcp = FastMCP("Yamtrack")
 
 
+def mcp_tool():
+    """Decorator that runs a sync tool in a thread, avoiding Django's
+    'async context' error when the MCP SDK calls it from the event loop."""
+
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            return await sync_to_async(func)(*args, **kwargs)
+
+        return mcp.tool()(wrapper)
+
+    return decorator
+
+
 def _user_required():
     user = get_current_user()
     if user is None:
@@ -42,7 +58,7 @@ def _get_media_or_error(user, media_type, instance_id):
         raise ValueError(msg) from None
 
 
-@mcp.tool()
+@mcp_tool()
 def search_media(
     query: str, media_type: str = "tv", page: int = 1, source: str | None = None
 ) -> str:
@@ -54,7 +70,7 @@ def search_media(
     return json.dumps(results)
 
 
-@mcp.tool()
+@mcp_tool()
 def get_details(
     source: str,
     media_type: str,
@@ -78,7 +94,7 @@ def get_details(
     return json.dumps(metadata)
 
 
-@mcp.tool()
+@mcp_tool()
 def list_tracked_media(
     media_type: str | None = None,
     status: str = "All",
@@ -92,12 +108,15 @@ def list_tracked_media(
     user = _user_required()
 
     if media_type:
+        if media_type == MediaTypes.EPISODE.value:
+            return json.dumps({"error": "Episodes are not directly trackable"})
         qs = BasicMedia.objects.get_media_list(user, media_type, status, sort, search)
         serializer = MediaSerializer(qs, many=True)
         return json.dumps({"results": serializer.data, "total": len(serializer.data)})
 
     grouped = {}
-    for mt in MediaTypes.values:
+    trackable_types = [t for t in MediaTypes.values if t != MediaTypes.EPISODE.value]
+    for mt in trackable_types:
         qs = BasicMedia.objects.get_media_list(user, mt, status, sort, search)
         serializer = MediaSerializer(qs, many=True)
         if serializer.data:
@@ -105,7 +124,7 @@ def list_tracked_media(
     return json.dumps(grouped)
 
 
-@mcp.tool()
+@mcp_tool()
 def create_entry(
     media_id: str,
     source: str,
@@ -163,7 +182,7 @@ def create_entry(
     return json.dumps({"error": form.errors})
 
 
-@mcp.tool()
+@mcp_tool()
 def update_entry(
     media_type: str,
     instance_id: int,
@@ -196,7 +215,7 @@ def update_entry(
     return json.dumps(MediaSerializer(media).data)
 
 
-@mcp.tool()
+@mcp_tool()
 def update_progress(media_type: str, instance_id: int, operation: str) -> str:
     """Increase or decrease progress on a media item.
 
@@ -218,7 +237,7 @@ def update_progress(media_type: str, instance_id: int, operation: str) -> str:
     return json.dumps(MediaSerializer(media).data)
 
 
-@mcp.tool()
+@mcp_tool()
 def update_score(media_type: str, instance_id: int, score: float) -> str:
     """Update the score (0-10) for a tracked media item."""
     user = _user_required()
@@ -229,7 +248,7 @@ def update_score(media_type: str, instance_id: int, score: float) -> str:
     return json.dumps(MediaSerializer(media).data)
 
 
-@mcp.tool()
+@mcp_tool()
 def get_home(sort: str = "upcoming") -> str:
     """Get dashboard data: in-progress and planning media."""
     user = _user_required()
@@ -254,7 +273,7 @@ def get_home(sort: str = "upcoming") -> str:
     })
 
 
-@mcp.tool()
+@mcp_tool()
 def get_statistics(
     start_date: str | None = None,
     end_date: str | None = None,
@@ -293,7 +312,7 @@ def get_statistics(
     })
 
 
-@mcp.tool()
+@mcp_tool()
 def get_history(
     source: str,
     media_type: str,
