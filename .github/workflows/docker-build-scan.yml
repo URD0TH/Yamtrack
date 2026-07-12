@@ -88,38 +88,6 @@ jobs:
             "> Trivy scan: ${TOTAL} vulns (${CRITICAL} critical, ${HIGH} high, ${MEDIUM} medium, ${LOW} low)" > scan_results.md
           echo "SHORT_SUMMARY=Trivy scan: ${TOTAL} vulns (${CRITICAL} critical, ${HIGH} high, ${MEDIUM} medium, ${LOW} low)" >> $GITHUB_OUTPUT
 
-      - name: Update README with release block
-        run: |
-          VERSION="${{ steps.get-version.outputs.VERSION }}"
-          RELEASE_URL="https://github.com/${{ github.repository }}/releases/tag/${VERSION}"
-          ACTIONS_URL="https://github.com/${{ github.repository }}/actions"
-          awk -v release="$RELEASE_URL" -v actions="$ACTIONS_URL" -v ver="$VERSION" '
-            /START_RELEASE_BLOCK/ {
-              skip=1
-              print "<!-- START_RELEASE_BLOCK -->"
-              print "### \xf0\x9f\x93\xa6 Imagenes Disponibles"
-              print ""
-              print "| Version | Last Published |"
-              print "|---------|----------------|"
-              printf "| `latest` | \xe2\x9c\x85 [Build latest](%s) |\n", actions
-              printf "| `%s` | \xe2\x9c\x85 [Ver detalles](%s) |\n", ver, release
-              print ""
-              print "## \xf0\x9f\x94\x90 Seguridad"
-              printf "\xf0\x9f\x94\x97 [Ver ultimo reporte](%s)\n", actions
-              print "<!-- END_RELEASE_BLOCK -->"
-              next
-            }
-            /END_RELEASE_BLOCK/ && skip { skip=0; next }
-            !skip { print }
-          ' README.md > README.tmp && mv README.tmp README.md
-
-      - name: Commit README update
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md
-          git diff --cached --quiet || git commit -m "docs: update release block [skip ci]" && git push
-
       - name: Upload Trivy report
         uses: actions/upload-artifact@v4
         with:
