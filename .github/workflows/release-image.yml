@@ -26,7 +26,9 @@ jobs:
         run: |
           VERSION=$(git describe --tags 2>/dev/null || echo "dev")
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-          echo "Using version: $VERSION"
+          IMAGE=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE=$IMAGE" >> $GITHUB_OUTPUT
+          echo "Using version: $VERSION, image: $IMAGE"
 
       - name: Download Trivy report
         uses: actions/download-artifact@v4
@@ -70,8 +72,8 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ghcr.io/${{ github.repository }}:${{ steps.get-version.outputs.VERSION }}
-            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ steps.get-version.outputs.IMAGE }}:${{ steps.get-version.outputs.VERSION }}
+            ghcr.io/${{ steps.get-version.outputs.IMAGE }}:latest
           labels: |
             org.opencontainers.image.description=${{ steps.summary.outputs.SHORT_SUMMARY }}
           cache-from: type=gha
