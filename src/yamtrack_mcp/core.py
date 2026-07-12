@@ -301,15 +301,18 @@ def get_statistics(
             end = timezone.make_aware(datetime.combine(end, datetime.max.time()))
 
     user_media, media_count = stats.get_user_media(user, start, end)
-    return json.dumps({
-        "media_count": media_count,
-        "media_type_distribution": stats.get_media_type_distribution(media_count),
-        "score_distribution": stats.get_score_distribution(user_media)[0],
-        "top_rated": stats.get_score_distribution(user_media)[1],
-        "status_distribution": stats.get_status_distribution(user_media),
-        "timeline": stats.get_timeline(user_media),
-        "activity_data": stats.get_activity_data(user, start, end),
-    })
+    return json.dumps(
+        {
+            "media_count": media_count,
+            "media_type_distribution": stats.get_media_type_distribution(media_count),
+            "score_distribution": stats.get_score_distribution(user_media)[0],
+            "top_rated": stats.get_score_distribution(user_media)[1],
+            "status_distribution": stats.get_status_distribution(user_media),
+            "timeline": stats.get_timeline(user_media),
+            "activity_data": stats.get_activity_data(user, start, end),
+        },
+        default=str,
+    )
 
 
 @mcp_tool()

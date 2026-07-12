@@ -1,6 +1,6 @@
 ---
 name: yamtrack-mcp-workflow
-description: Specialized workflows for Yamtrack media tracking via MCP — search, track, update, and query media through AI assistants (OpenCode, VS Code, Hermes, Claude Desktop).
+description: Helps you search, track, update, and query media in Yamtrack through its Model Context Protocol (MCP) server, from any AI assistant (OpenCode, VS Code, Hermes, Claude Desktop). Use this skill whenever the user mentions Yamtrack, wants to add/remove/track a movie, TV show, anime, manga, game, book, comic, or boardgame, check their tracking dashboard or statistics, update status/score/progress/notes, view change history, or configure/authenticate an MCP client (stdio or Streamable HTTP) to talk to a Yamtrack instance. Trigger even when the user does not say "MCP" explicitly — any request to operate on Yamtrack media data through an assistant should use this skill.
 ---
 
 # Yamtrack MCP Workflows
