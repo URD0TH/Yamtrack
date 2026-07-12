@@ -1,5 +1,6 @@
 __pycache__
 *.pyc
+*.log
 .env
 .coverage*
 .venv
@@ -8,7 +9,7 @@ site
 src/db/db.sqlite3
 db.sqlite3-shm
 db.sqlite3-wal
-.vscode/launch.json
+.vscode
 .agents
 AGENTS.md
 .claude
@@ -17,3 +18,6 @@ requests.http
 TODO.txt
 .codex
 .cache
+.ruff_cache
+.pytest_cache
+.djlint
