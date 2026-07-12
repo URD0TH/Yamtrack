@@ -1,13 +1,17 @@
 name: build-docs
 on:
   pull_request:
-    paths-ignore:
-      - ".github/**"
+    paths:
+      - "docs/**"
+      - "zensical.toml"
+      - "pyproject.toml"
   push:
     branches:
       - main
-    paths-ignore:
-      - ".github/**"
+    paths:
+      - "docs/**"
+      - "zensical.toml"
+      - "pyproject.toml"
 permissions:
   contents: write
 concurrency:
