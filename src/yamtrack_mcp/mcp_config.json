@@ -1,0 +1,8 @@
+{
+  "servers": [
+    {
+      "name": "yamtrack",
+      "command": ["uv", "run", "python", "src/manage.py", "run_mcp"]
+    }
+  ]
+}

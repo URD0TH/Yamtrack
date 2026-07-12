@@ -21,3 +21,5 @@ TODO.txt
 .ruff_cache
 .pytest_cache
 .djlint
+compose.yml
+db/
