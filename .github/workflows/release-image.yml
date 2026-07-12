@@ -35,11 +35,12 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           path: artifacts
           pattern: trivy-report|scan-results
+          merge-multiple: true
 
       - name: Extract summary from scan results
         id: summary
         run: |
-          SHORT_SUMMARY=$(awk '/^> /{print substr($0,3); exit}' artifacts/scan-results/scan_results.md)
+          SHORT_SUMMARY=$(awk '/^> /{print substr($0,3); exit}' artifacts/scan_results.md)
           echo "SHORT_SUMMARY=${SHORT_SUMMARY}" >> $GITHUB_OUTPUT
 
       - name: Setup Docker buildx
@@ -82,8 +83,8 @@ jobs:
           draft: false
           prerelease: ${{ contains(steps.get-version.outputs.VERSION, '-') }}
           files: |
-            artifacts/trivy-report/trivy-report.json
-            artifacts/scan-results/scan_results.md
+            artifacts/trivy-report.json
+            artifacts/scan_results.md
 
       - name: Update README with release block
         run: |
