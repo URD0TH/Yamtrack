@@ -44,7 +44,7 @@ def mcp_tool():
 def _user_required():
     user = get_current_user()
     if user is None:
-        msg = "Authentication required. Provide a valid JWT token."
+        msg = "Authentication required. Provide a valid token."
         raise ValueError(msg)
     return user
 

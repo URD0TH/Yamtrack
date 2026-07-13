@@ -110,7 +110,7 @@ curl https://your-instance/api/media/movie/ \
 
 Yamtrack includes an [MCP (Model Context Protocol)](https://modelcontextprotocol.org) server for AI assistants. It exposes the same media tracking capabilities as tools for Claude Desktop, OpenCode, VS Code, Hermes, Typem, and any MCP-compatible client.
 
-- **HTTP**: Streamable HTTP at `/mcp` (uvicorn on port `8002`, also proxied at `:8000/mcp/`) with JWT auth — used natively by OpenCode, VS Code, and Hermes.
+- **HTTP**: Streamable HTTP at `/mcp` (uvicorn on port `8002`, also proxied at `:8000/mcp/`) with JWT or static account-token auth — used natively by OpenCode, VS Code, and Hermes.
 - **stdio**: `python src/manage.py run_mcp` (pass the token via `YAMTRACK_JWT` or `--token`) for local clients or as a bridge for stdio-only clients like Claude Desktop.
 - **Tools**: `search_media`, `get_details`, `list_tracked_media`, `get_home`, `get_history`, `create_entry`, `update_entry`, `update_progress`, `update_score`, `get_statistics`.
 

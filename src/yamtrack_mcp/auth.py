@@ -37,6 +37,22 @@ def get_user_from_jwt(token: str):
         return None
 
 
+def get_user_from_token(token: str):
+    """Authenticate a Bearer token, trying JWT then the static user token.
+
+    The static token is short, non-expiring, and regenerable from account
+    settings — like an LLM provider API key — so MCP clients don't need to
+    refresh a JWT every hour.
+
+    """
+    if not token:
+        return None
+    user = get_user_from_jwt(token)
+    if user:
+        return user
+    return User.objects.filter(token=token).first()
+
+
 async def jwt_auth_middleware(scope, receive, send, next_app):
     """ASGI middleware that validates JWT from Authorization header."""
     if scope["type"] != "http":
@@ -48,7 +64,7 @@ async def jwt_auth_middleware(scope, receive, send, next_app):
 
     user = None
     if auth.startswith("Bearer "):
-        user = await sync_to_async(get_user_from_jwt)(auth.removeprefix("Bearer "))
+        user = await sync_to_async(get_user_from_token)(auth.removeprefix("Bearer "))
 
     token = current_user.set(user)
     try:
