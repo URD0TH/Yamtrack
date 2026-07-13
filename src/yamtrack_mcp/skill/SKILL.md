@@ -18,9 +18,13 @@ The MCP server speaks **Streamable HTTP** at `/mcp` — uvicorn on port `8002`, 
 
 ## Authentication
 
-Send the JWT in the `Authorization` header: `Authorization: Bearer <token>`. Read-only tools (`search_media`, `get_details`) work without a token; everything else requires it.
+Send a token in the `Authorization` header: `Authorization: Bearer <token>`. Read-only tools (`search_media`, `get_details`) work without a token; every other tool requires it. If a tool returns **"Authentication required"**, you have no valid token yet — get one (below) and retry.
 
-**Get a token** from the REST API with your account credentials:
+### Get a token
+
+**Static account token (recommended)** — open **Account settings → Integrations** in the Yamtrack web UI. Your API token is shown there with a copy button (and can be regenerated). It is short, never expires, and is the same token used for integration webhooks. Use it directly as the bearer token, or for stdio via `YAMTRACK_JWT` / `--token`.
+
+**JWT (REST API)** — get a short-lived JWT with your credentials:
 
 ```bash
 curl -X POST https://your-yamtrack-instance.com/api/token/ \
@@ -28,9 +32,9 @@ curl -X POST https://your-yamtrack-instance.com/api/token/ \
   -d '{"username":"your-username","password":"your-password"}'
 ```
 
-Use the `access` field of the response. Tokens expire; re-run when you get auth errors.
+Use the `access` field of the response. JWTs expire after one hour, so re-run when you get auth errors.
 
-**Self-hosted / no account handy** — mint one inside the container (it shares the API `SECRET`, so the MCP server accepts it):
+**Self-hosted / no account handy** — mint a JWT inside the container (it shares the API `SECRET`, so the MCP server accepts it):
 
 ```bash
 docker exec -i yamtrack uv run python -c "
@@ -59,7 +63,7 @@ For stdio, pass the token via the `YAMTRACK_JWT` env var or the `--token` argume
         "url": "http://localhost:8002/mcp",
         "oauth": false,
         "enabled": true,
-        "headers": { "Authorization": "Bearer <your-jwt-token>" }
+        "headers": { "Authorization": "Bearer <token>" }
       }
     }
   }
@@ -78,7 +82,7 @@ Set `"oauth": false` so OpenCode uses the static header instead of OAuth discove
     "yamtrack": {
       "type": "http",
       "url": "http://localhost:8002/mcp",
-      "headers": { "Authorization": "Bearer <your-jwt-token>" }
+      "headers": { "Authorization": "Bearer <token>" }
     }
   }
 }
@@ -95,7 +99,7 @@ mcp_servers:
   yamtrack:
     url: "http://localhost:8002/mcp"
     headers:
-      Authorization: "Bearer <your-jwt-token>"
+      Authorization: "Bearer <token>"
 ```
 
 ### Claude Desktop
@@ -108,7 +112,7 @@ mcp_servers:
     "yamtrack": {
       "command": "npx",
       "args": ["-y", "mcp-remote", "http://localhost:8002/mcp", "--transport", "http-only"],
-      "env": { "MCP_REMOTE_HEADERS": "Authorization: Bearer <your-jwt-token>" }
+      "env": { "MCP_REMOTE_HEADERS": "Authorization: Bearer <token>" }
     }
   }
 }

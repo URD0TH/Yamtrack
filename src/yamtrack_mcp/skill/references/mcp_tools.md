@@ -1,6 +1,6 @@
 # MCP Tools Reference
 
-Reference for the Yamtrack MCP server tools. All tools require a JWT except the read-only ones noted.
+Reference for the Yamtrack MCP server tools. All tools require a token (JWT or the static account token from **Account settings → Integrations**) except the read-only ones noted. If a tool returns "Authentication required", supply a valid token and retry.
 
 ## search_media
 
