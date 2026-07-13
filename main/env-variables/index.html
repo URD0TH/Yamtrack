@@ -830,7 +830,7 @@
 </tr>
 <tr>
 <td><code>SECRET</code></td>
-<td><a href="https://docs.djangoproject.com/en/stable/ref/settings/#secret-key">Secret key</a> used for cryptographic signing. Should be a random string.</td>
+<td><a href="https://docs.djangoproject.com/en/stable/ref/settings/#secret-key">Secret key</a> used for cryptographic signing. Should be a random string of at least 32 bytes (e.g. <code>openssl rand -hex 32</code>). The JWT signing key is derived from it via SHA-256.</td>
 </tr>
 <tr>
 <td><code>URLS</code></td>

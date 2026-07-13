@@ -544,6 +544,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="🤖 MCP Server">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mcp-skill" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        🧩 MCP Skill
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -978,13 +995,15 @@
 </span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer &lt;token&gt;&quot;</span>
 </span></code></pre></div>
 <h2 id="mcp-server">🤖 MCP Server<a class="headerlink" href="#mcp-server" title="Permanent link">&para;</a></h2>
-<p>Yamtrack includes an <a href="https://modelcontextprotocol.org">MCP (Model Context Protocol)</a> server for AI assistants. It exposes the same media tracking capabilities as tools for Claude Desktop, OpenCode, Typem, Hermes, and any MCP-compatible client.</p>
+<p>Yamtrack includes an <a href="https://modelcontextprotocol.org">MCP (Model Context Protocol)</a> server for AI assistants. It exposes the same media tracking capabilities as tools for Claude Desktop, OpenCode, VS Code, Hermes, Typem, and any MCP-compatible client.</p>
 <ul>
-<li><strong>stdio</strong>: <code>python src/manage.py run_mcp --token &lt;jwt&gt;</code> for local clients</li>
-<li><strong>HTTP</strong>: served at <code>/mcp/</code> with JWT auth for remote clients</li>
-<li><strong>Tools</strong>: search, list, create, update, track progress, stats, history</li>
+<li><strong>HTTP</strong>: Streamable HTTP at <code>/mcp</code> (uvicorn on port <code>8002</code>, also proxied at <code>:8000/mcp/</code>) with JWT or static account-token auth — used natively by OpenCode, VS Code, and Hermes.</li>
+<li><strong>stdio</strong>: <code>python src/manage.py run_mcp</code> (pass the token via <code>YAMTRACK_JWT</code> or <code>--token</code>) for local clients or as a bridge for stdio-only clients like Claude Desktop.</li>
+<li><strong>Tools</strong>: <code>search_media</code>, <code>get_details</code>, <code>list_tracked_media</code>, <code>get_home</code>, <code>get_history</code>, <code>create_entry</code>, <code>update_entry</code>, <code>update_progress</code>, <code>update_score</code>, <code>get_statistics</code>.</li>
 </ul>
 <p>Full MCP reference: <a href="https://github.com/URD0TH/Yamtrack/wiki/MCP">GitHub Wiki</a></p>
+<h3 id="mcp-skill">🧩 MCP Skill<a class="headerlink" href="#mcp-skill" title="Permanent link">&para;</a></h3>
+<p>A packaged skill (<code>yamtrack-mcp-workflow</code>) ships ready-to-use workflows on top of the MCP server: <strong>research-and-track</strong> (search then plan new media) and <strong>batch statistics</strong> (aggregate stats across date ranges). It lives in <a href="src/yamtrack_mcp/skill/"><code>src/yamtrack_mcp/skill/</code></a> and is documented in the <a href="https://github.com/URD0TH/Yamtrack/wiki/MCP">MCP wiki</a>.</p>
 <h2 id="development">💻 Development<a class="headerlink" href="#development" title="Permanent link">&para;</a></h2>
 <p>Development instructions are available in the <a href="https://fuzzygrim.github.io/Yamtrack/release/development/">Development documentation</a>.</p>
 <h2 id="support-the-project">💪 Support the Project<a class="headerlink" href="#support-the-project" title="Permanent link">&para;</a></h2>
