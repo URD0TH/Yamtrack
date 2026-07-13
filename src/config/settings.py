@@ -1,5 +1,6 @@
 """Django settings for Yamtrack project."""
 
+import hashlib
 import json
 import sys
 import warnings
@@ -535,6 +536,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
+    # ponytail: derive 32-byte key so PyJWT stops warning on short SECRET
+    "SIGNING_KEY": hashlib.sha256(SECRET_KEY.encode()).hexdigest(),
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "AUTH_HEADER_TYPES": ("Bearer",),
