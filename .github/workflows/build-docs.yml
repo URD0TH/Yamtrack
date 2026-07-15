@@ -1,11 +1,6 @@
 name: build-docs
 
 on:
-  pull_request:
-    paths-ignore:
-      - '.github/**'
-      - 'mcp/**'
-      - 'wiki/**'
   workflow_dispatch:
 
 permissions:
