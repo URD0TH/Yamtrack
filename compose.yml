@@ -1,0 +1,42 @@
+services:
+  yamtrack:
+    container_name: yamtrack
+    image: yamtrack:latest
+    restart: unless-stopped
+    depends_on:
+      - redis
+    networks:
+      proxy:
+        ipv4_address: 172.20.0.17
+    environment:
+      - TZ=America/Santiago
+      - SECRET=longstring
+      - REDIS_URL=redis://redis:6379
+      - ADMIN_ENABLED=True
+    volumes:
+      - /home/bnds/.docker/data/yamtrack/db:/yamtrack/db
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+      - "8002:8002"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.qbittorrent.rule: Host(`track.lc.bnds.click`)
+      traefik.http.routers.qbittorrent.entrypoints: websecure
+      traefik.http.routers.qbittorrent.tls: "true"
+      traefik.http.routers.qbittorrent.tls.certresolver: cloudflare
+      traefik.http.services.qbittorrent-svc.loadbalancer.server.port: "8000"
+
+  redis:
+    container_name: redis
+    image: redis:8-alpine
+    restart: unless-stopped
+    networks:
+      proxy:
+        ipv4_address: 172.20.0.18
+    volumes:
+      - /home/bnds/.docker/data/yamtrack/redis:/data
+
+networks:
+  proxy:
+    external: true
