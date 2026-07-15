@@ -44,7 +44,7 @@ class DetailsApiTest(TestCase):
             email="test@example.com",
             password="testpass123",  # noqa: S106
         )
-        self.client.force_login(self.user)
+        self.client.defaults["HTTP_AUTHORIZATION"] = f"Bearer {self.user.token}"
 
     @patch(
         "app.providers.services.get_media_metadata",

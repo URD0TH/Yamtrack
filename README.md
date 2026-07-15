@@ -77,21 +77,18 @@ The default Compose file uses SQLite, which is enough for most personal installs
 
 ## 🔌 API
 
-Yamtrack includes a REST API for programmatic access. It uses JWT authentication and supports media CRUD, search, progress tracking, episodes, history, and statistics.
+Yamtrack includes a REST API for programmatic access. It is authenticated exclusively with a static API key (per-user token) and offers media CRUD, search, progress tracking, episodes, history, and statistics.
+
+The API key is the per-user token from **Account settings → Integrations** — the same key used by the MCP server and webhooks — so one key authorizes the API, the MCP server, and webhooks.
 
 Full API reference: [GitHub Wiki](https://github.com/URD0TH/Yamtrack/wiki/API)
 
 ### Quick Example
 
 ```bash
-# Get a token
-curl -X POST https://your-instance/api/token/ \
-  -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"yourpass"}'
-
-# List movies
+# Use your static API key (Bearer or X-API-Key header)
 curl https://your-instance/api/media/movie/ \
-  -H "Authorization: Bearer <token>"
+  -H "Authorization: Bearer <api_key>"
 ```
 
 ## 💻 Development

@@ -28,7 +28,7 @@ class MediaApiTest(TestCase):
             email="test@example.com",
             password=self.testpass,
         )
-        self.client.force_login(self.user)
+        self.client.defaults["HTTP_AUTHORIZATION"] = f"Bearer {self.user.token}"
 
         self.item = Item.objects.create(
             media_id="123",
@@ -127,7 +127,7 @@ class MediaApiTest(TestCase):
 
     def test_media_delete_unauthenticated(self):
         """Test that unauthenticated users cannot delete media."""
-        self.client.logout()
+        self.client.defaults.pop("HTTP_AUTHORIZATION", None)
         response = self.client.delete(
             f"/api/media/movie/{self.movie.id}/delete/",
         )
@@ -189,7 +189,7 @@ class MediaApiTest(TestCase):
 
     def test_media_update_unauthenticated(self):
         """Test that unauthenticated users cannot update media."""
-        self.client.logout()
+        self.client.defaults.pop("HTTP_AUTHORIZATION", None)
         response = self.client.patch(
             f"/api/media/movie/{self.movie.id}/",
             {"notes": "hacked"},

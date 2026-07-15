@@ -1,25 +1,12 @@
 """Authentication views for the API."""
 
 from django.contrib.auth.decorators import login_not_required
-from django.utils.decorators import method_decorator
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework_simplejwt.views import TokenRefreshView
 
-from api.authentication import EmailTokenObtainPairView
 from api.serializers.auth import UserSerializer
-
-
-@method_decorator(login_not_required, name="dispatch")
-class CustomTokenObtainPairView(EmailTokenObtainPairView):
-    """JWT token obtain view with AllowAny permission."""
-
-
-@method_decorator(login_not_required, name="dispatch")
-class CustomTokenRefreshView(TokenRefreshView):
-    """JWT token refresh view with AllowAny permission."""
 
 
 @login_not_required

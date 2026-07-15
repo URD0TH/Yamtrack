@@ -813,20 +813,6 @@ wheels = [
 ]
 
 [[package]]
-name = "djangorestframework-simplejwt"
-version = "5.3.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-    { name = "djangorestframework" },
-    { name = "pyjwt" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/ac/f3/f2ce06fcd1c53e12b26cc5a3ec9e0acd47eb4be02e1d24de50edee5c5abf/djangorestframework_simplejwt-5.3.1.tar.gz", hash = "sha256:6c4bd37537440bc439564ebf7d6085e74c5411485197073f508ebdfa34bc9fae", size = 94266, upload-time = "2023-12-04T06:37:22.761Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f2/ab/88f73cf08d2ad3fb9f71b956dceca5680a57f121e5ce9a604f365877d57e/djangorestframework_simplejwt-5.3.1-py3-none-any.whl", hash = "sha256:381bc966aa46913905629d472cd72ad45faa265509764e20ffd440164c88d220", size = 101339, upload-time = "2023-12-04T06:38:25.362Z" },
-]
-
-[[package]]
 name = "djlint"
 version = "1.36.4"
 source = { registry = "https://pypi.org/simple" }
@@ -2400,7 +2386,6 @@ dependencies = [
     { name = "django-simple-history" },
     { name = "django-widget-tweaks" },
     { name = "djangorestframework" },
-    { name = "djangorestframework-simplejwt" },
     { name = "gunicorn" },
     { name = "icalendar" },
     { name = "pillow" },
@@ -2463,7 +2448,6 @@ requires-dist = [
     { name = "django-simple-history", specifier = "~=3.11.0" },
     { name = "django-widget-tweaks", specifier = "~=1.5.1" },
     { name = "djangorestframework", specifier = "~=3.15.0" },
-    { name = "djangorestframework-simplejwt", specifier = "~=5.3.0" },
     { name = "gunicorn", specifier = "~=25.3.0" },
     { name = "icalendar", specifier = "~=7.0.3" },
     { name = "pillow", specifier = "~=12.2.0" },

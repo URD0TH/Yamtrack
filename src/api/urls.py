@@ -3,12 +3,6 @@ from django.urls import path
 from api.views import auth, episodes, history, media, search, statistics
 
 urlpatterns = [
-    path("token/", auth.CustomTokenObtainPairView.as_view(), name="api_token_obtain"),
-    path(
-        "token/refresh/",
-        auth.CustomTokenRefreshView.as_view(),
-        name="api_token_refresh",
-    ),
     path("auth/me/", auth.me, name="api_auth_me"),
     path("search/", search.search, name="api_search"),
     path("home/", media.home, name="api_home"),
