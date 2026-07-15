@@ -160,7 +160,13 @@ def media_create(request, media_type):  # noqa: ARG001
         form_data["progress"] = instance.progress
     form = form_class(form_data, instance=instance)
     if form.is_valid():
-        form.save()
+        try:
+            form.save()
+        except IntegrityError:
+            return Response(
+                {"error": "This media is already tracked."},
+                status=status.HTTP_409_CONFLICT,
+            )
         return Response(
             MediaSerializer(form.instance).data,
             status=status.HTTP_201_CREATED,

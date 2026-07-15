@@ -92,6 +92,28 @@ class MediaApiTest(TestCase):
         self.assertEqual(response.data["item"]["title"], "Test Movie")
 
     @patch("app.providers.services.get_media_metadata", return_value=MOCK_METADATA)
+    def test_create_duplicate_tv_media(self, _mock_get_metadata):
+        """Creating an already tracked TV must return 409, not a 500."""
+        payload = {
+            "media_id": "456",
+            "source": "tmdb",
+            "media_type": "tv",
+            "status": "Planning",
+        }
+        self.client.post(
+            "/api/media/tv/create/",
+            payload,
+            content_type="application/json",
+        )
+        response = self.client.post(
+            "/api/media/tv/create/",
+            payload,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+        self.assertIn("error", response.data)
+
+    @patch("app.providers.services.get_media_metadata", return_value=MOCK_METADATA)
     def test_create_tv_media(self, _mock_get_metadata):
         """TV progress is a read-only property; creating TV must not set it."""
         response = self.client.post(
