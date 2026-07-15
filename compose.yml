@@ -18,7 +18,6 @@ services:
     ports:
       - "8000:8000"
       - "8001:8001"
-      - "8002:8002"
     labels:
       traefik.enable: "true"
       traefik.http.routers.qbittorrent.rule: Host(`track.lc.bnds.click`)
