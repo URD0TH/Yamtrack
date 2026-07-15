@@ -129,6 +129,48 @@ class MediaApiTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["item"]["title"], "Test Movie")
 
+    @patch("app.providers.services.get_media_metadata", return_value=MOCK_METADATA)
+    def test_update_tv_progress(self, _mock_get_metadata):
+        """PATCHing progress on TV must not 500 on the read-only property."""
+        create = self.client.post(
+            "/api/media/tv/create/",
+            {
+                "media_id": "456",
+                "source": "tmdb",
+                "media_type": "tv",
+                "status": "Planning",
+            },
+            content_type="application/json",
+        )
+        tv_id = create.data["id"]
+        response = self.client.patch(
+            f"/api/media/tv/{tv_id}/",
+            {"progress": 5},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    @patch("app.providers.services.get_media_metadata", return_value=MOCK_METADATA)
+    def test_update_tv_progress_increase(self, _mock_get_metadata):
+        """Increasing TV progress must not 500 on the read-only property."""
+        create = self.client.post(
+            "/api/media/tv/create/",
+            {
+                "media_id": "456",
+                "source": "tmdb",
+                "media_type": "tv",
+                "status": "Planning",
+            },
+            content_type="application/json",
+        )
+        tv_id = create.data["id"]
+        response = self.client.post(
+            f"/api/media/tv/{tv_id}/progress/",
+            {"operation": "increase"},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     @patch(
         "app.providers.services.get_media_metadata",
         side_effect=ProviderAPIError(Sources.TMDB.value, "not found"),

@@ -185,6 +185,13 @@ def media_update(request, media_type, instance_id):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     for attr, value in serializer.validated_data.items():
+        progress_is_property = isinstance(
+            getattr(media.__class__, "progress", None), property,
+        )
+        if attr == "progress" and progress_is_property:
+            if hasattr(media, "set_progress"):
+                media.set_progress(value)
+            continue
         setattr(media, attr, value)
     media.save()
     return Response(MediaSerializer(media).data)

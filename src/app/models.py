@@ -1037,9 +1037,48 @@ class TV(Media):
         dates = [
             season.progressed_at
             for season in self.seasons.all()
-            if season.progressed_at and season.item.season_number != 0
+            if season.end_date and season.item.season_number != 0
         ]
         return max(dates) if dates else None
+
+    def current_season(self):
+        """Return the season currently being watched, else the latest season."""
+        return (
+            self.seasons.filter(status=Status.IN_PROGRESS.value).first()
+            or self.seasons.order_by("-item__season_number").first()
+        )
+
+    def increase_progress(self):
+        """Watch the next episode of the current season."""
+        season = self.current_season()
+        if season is not None:
+            season.increase_progress()
+        else:
+            logger.info("No season available to advance progress for %s.", self)
+
+    def decrease_progress(self):
+        """Unwatch the current episode of the current season."""
+        season = self.current_season()
+        if season is not None:
+            season.decrease_progress()
+        else:
+            logger.info("No season available to rewind progress for %s.", self)
+
+    def set_progress(self, target):
+        """Set total watched episodes by adjusting the current season's episodes."""
+        season = self.current_season()
+        if season is None:
+            return
+        while season.progress < target:
+            before = season.progress
+            season.increase_progress()
+            if season.progress == before:
+                break
+        while season.progress > target:
+            before = season.progress
+            season.decrease_progress()
+            if season.progress == before:
+                break
 
     @property
     def start_date(self):
