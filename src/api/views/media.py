@@ -118,9 +118,10 @@ def media_create(request, media_type):  # noqa: ARG001
         metadata = services.get_media_metadata(
             data["media_type"], data["media_id"], data["source"], season_numbers,
         )
-    except services.ProviderAPIError as exc:
+    except services.ProviderAPIError:
+        logger.exception("Failed to fetch metadata from provider.")
         return Response(
-            {"error": f"Failed to fetch metadata: {exc}"},
+            {"error": "Failed to fetch metadata."},
             status=status.HTTP_404_NOT_FOUND,
         )
     item, _ = Item.objects.get_or_create(
