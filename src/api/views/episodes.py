@@ -3,7 +3,6 @@
 import logging
 
 from django.contrib.auth.decorators import login_not_required
-from django.db import IntegrityError
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -11,6 +10,7 @@ from rest_framework.response import Response
 
 from api.serializers.media import EpisodeCreateSerializer
 from app.models import (
+    Episode,
     Item,
     MediaTypes,
     Season,
@@ -67,12 +67,18 @@ def episode_create(request):
         logger.info("%s did not exist, it was created successfully.", related_season)
 
     end_date = data.get("end_date") or timezone.now().replace(second=0, microsecond=0)
-    try:
-        related_season.watch(data["episode_number"], end_date)
-    except IntegrityError:
-        return Response(
-            {"error": "Episode already tracked."},
-            status=status.HTTP_409_CONFLICT,
+    episode = (
+        Episode.objects.filter(
+            related_season=related_season,
+            item__episode_number=data["episode_number"],
         )
+        .order_by("-end_date")
+        .first()
+    )
+    if episode is None:
+        related_season.watch(data["episode_number"], end_date)
+        return Response(status=status.HTTP_201_CREATED)
 
-    return Response(status=status.HTTP_201_CREATED)
+    episode.end_date = end_date
+    episode.save()
+    return Response(status=status.HTTP_200_OK)

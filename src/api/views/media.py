@@ -158,6 +158,10 @@ def media_create(request, media_type):  # noqa: ARG001
     }
     if not isinstance(getattr(model, "progress", None), property):
         form_data["progress"] = instance.progress
+    if data.get("start_date") is not None:
+        form_data["start_date"] = data["start_date"]
+    if data.get("end_date") is not None:
+        form_data["end_date"] = data["end_date"]
     form = form_class(form_data, instance=instance)
     if form.is_valid():
         try:

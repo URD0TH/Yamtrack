@@ -92,6 +92,30 @@ class MediaApiTest(TestCase):
         self.assertEqual(response.data["item"]["title"], "Test Movie")
 
     @patch("app.providers.services.get_media_metadata", return_value=MOCK_METADATA)
+    def test_create_media_with_dates(self, _mock_get_metadata):
+        """Custom start_date and end_date must be saved on create."""
+        response = self.client.post(
+            "/api/media/movie/create/",
+            {
+                "media_id": "789",
+                "source": "tmdb",
+                "media_type": "movie",
+                "status": "Completed",
+                "start_date": "2024-01-01T10:00:00Z",
+                "end_date": "2024-01-02T12:30:00Z",
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        movie = Movie.objects.get(item__media_id="789")
+        self.assertEqual(
+            movie.start_date.isoformat(), "2024-01-01T10:00:00+00:00",
+        )
+        self.assertEqual(
+            movie.end_date.isoformat(), "2024-01-02T12:30:00+00:00",
+        )
+
+    @patch("app.providers.services.get_media_metadata", return_value=MOCK_METADATA)
     def test_create_duplicate_tv_media(self, _mock_get_metadata):
         """Creating an already tracked TV must return 409, not a 500."""
         payload = {

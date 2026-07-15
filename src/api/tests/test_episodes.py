@@ -61,3 +61,34 @@ class EpisodeApiTest(TestCase):
             content_type="application/json",
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    @patch(
+        "app.providers.services.get_media_metadata",
+        side_effect=get_metadata_side_effect,
+    )
+    def test_episode_update_end_date(self, _mock_get_metadata):
+        """Re-sending the same episode with end_date updates its watch date."""
+        from app.models import Episode
+
+        payload = {
+            "media_id": "999",
+            "source": "tmdb",
+            "season_number": 1,
+            "episode_number": 1,
+        }
+        self.client.post(
+            "/api/episodes/", payload, content_type="application/json",
+        )
+        response = self.client.post(
+            "/api/episodes/",
+            {**payload, "end_date": "2024-01-02T12:30:00Z"},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        episode = Episode.objects.get(
+            related_season__item__media_id="999",
+            item__episode_number=1,
+        )
+        self.assertEqual(
+            episode.end_date.isoformat(), "2024-01-02T12:30:00+00:00",
+        )

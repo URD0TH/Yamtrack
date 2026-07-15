@@ -67,6 +67,8 @@ class MediaCreateSerializer(serializers.Serializer):
     )
     progress = serializers.IntegerField(required=False, default=0)
     notes = serializers.CharField(required=False, allow_blank=True, default="")
+    start_date = serializers.DateTimeField(required=False, allow_null=True)
+    end_date = serializers.DateTimeField(required=False, allow_null=True)
 
 
 class MediaUpdateSerializer(serializers.Serializer):
@@ -78,6 +80,8 @@ class MediaUpdateSerializer(serializers.Serializer):
     )
     progress = serializers.IntegerField(required=False)
     notes = serializers.CharField(required=False, allow_blank=True)
+    start_date = serializers.DateTimeField(required=False, allow_null=True)
+    end_date = serializers.DateTimeField(required=False, allow_null=True)
 
 
 class ProgressSerializer(serializers.Serializer):
