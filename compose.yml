@@ -8,9 +8,10 @@ services:
     networks:
       proxy:
         ipv4_address: 172.20.0.17
+    env_file:
+      - .env
     environment:
       - TZ=America/Santiago
-      - SECRET=longstring
       - REDIS_URL=redis://redis:6379
       - ADMIN_ENABLED=True
     volumes:

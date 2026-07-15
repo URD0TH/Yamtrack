@@ -23,7 +23,7 @@ MOCK_STATS = {
 @patch("app.statistics.get_score_distribution", return_value=({}, []))
 @patch("app.statistics.get_status_distribution", return_value={})
 @patch("app.statistics.get_status_pie_chart_data", return_value=[])
-@patch("app.statistics.get_timeline", return_value=[])
+@patch("app.statistics.get_timeline", return_value={})
 @patch("app.statistics.get_activity_data", return_value=[])
 class StatisticsApiTest(TestCase):
     """Test the statistics endpoint."""

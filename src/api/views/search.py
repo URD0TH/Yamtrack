@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from api.serializers.media import MediaSerializer
 from api.serializers.search import SearchSerializer
 from app import config
 from app.helpers import enrich_items_with_user_data
@@ -28,8 +29,19 @@ def search(request):
     )
 
     if results.get("results"):
-        results["results"] = enrich_items_with_user_data(
+        enriched = enrich_items_with_user_data(
             request, results["results"], "search",
         )
+        results["results"] = [
+            {
+                "item": entry["item"],
+                "media": (
+                    MediaSerializer(entry["media"]).data
+                    if entry["media"] is not None
+                    else None
+                ),
+            }
+            for entry in enriched
+        ]
 
     return Response(results)

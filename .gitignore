@@ -16,6 +16,7 @@ CLAUDE.md
 requests.http
 TODO.txt
 .codex
+.opencode
 .cache
 
 # Cache directories
