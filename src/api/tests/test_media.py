@@ -7,6 +7,7 @@ from django.test import TestCase
 from rest_framework import status
 
 from app.models import Item, MediaTypes, Movie, Sources, Status
+from app.providers.services import ProviderAPIError
 
 MOCK_METADATA = {
     "title": "Test Movie",
@@ -89,6 +90,40 @@ class MediaApiTest(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["item"]["title"], "Test Movie")
+
+    @patch("app.providers.services.get_media_metadata", return_value=MOCK_METADATA)
+    def test_create_tv_media(self, _mock_get_metadata):
+        """TV progress is a read-only property; creating TV must not set it."""
+        response = self.client.post(
+            "/api/media/tv/create/",
+            {
+                "media_id": "456",
+                "source": "tmdb",
+                "media_type": "tv",
+                "status": "Planning",
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["item"]["title"], "Test Movie")
+
+    @patch(
+        "app.providers.services.get_media_metadata",
+        side_effect=ProviderAPIError(Sources.TMDB.value, "not found"),
+    )
+    def test_create_media_metadata_not_found(self, _mock_get_metadata):
+        """A provider failure must return 404 JSON, not a 500 HTML page."""
+        response = self.client.post(
+            "/api/media/movie/create/",
+            {
+                "media_id": "789",
+                "source": "tmdb",
+                "media_type": "movie",
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertIn("error", response.data)
 
     def test_update_media_score(self):
         """Test updating the score of a media item."""

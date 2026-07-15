@@ -114,9 +114,15 @@ def media_create(request, media_type):  # noqa: ARG001
     data = serializer.validated_data
     season_number = data.get("season_number")
     season_numbers = [season_number] if season_number else None
-    metadata = services.get_media_metadata(
-        data["media_type"], data["media_id"], data["source"], season_numbers,
-    )
+    try:
+        metadata = services.get_media_metadata(
+            data["media_type"], data["media_id"], data["source"], season_numbers,
+        )
+    except services.ProviderAPIError as exc:
+        return Response(
+            {"error": f"Failed to fetch metadata: {exc}"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
     item, _ = Item.objects.get_or_create(
         media_id=data["media_id"],
         source=data["source"],
@@ -125,14 +131,16 @@ def media_create(request, media_type):  # noqa: ARG001
         defaults={"title": metadata["title"], "image": metadata["image"]},
     )
     model = apps.get_model(app_label="app", model_name=data["media_type"])
-    instance = model(
-        item=item,
-        user=request.user,
-        status=data.get("status", Status.COMPLETED.value),
-        score=data.get("score"),
-        progress=data.get("progress", 0),
-        notes=data.get("notes", ""),
-    )
+    instance_kwargs = {
+        "item": item,
+        "user": request.user,
+        "status": data.get("status", Status.COMPLETED.value),
+        "score": data.get("score"),
+        "notes": data.get("notes", ""),
+    }
+    if not isinstance(getattr(model, "progress", None), property):
+        instance_kwargs["progress"] = data.get("progress", 0)
+    instance = model(**instance_kwargs)
 
     form_class = get_form_class(data["media_type"])
     if form_class is None:
@@ -140,18 +148,17 @@ def media_create(request, media_type):  # noqa: ARG001
             {"error": f"No form found for media type '{data['media_type']}'"},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    form = form_class(
-        {
-            "media_type": data["media_type"],
-            "source": data["source"],
-            "media_id": data["media_id"],
-            "status": instance.status,
-            "score": instance.score,
-            "progress": instance.progress,
-            "notes": instance.notes,
-        },
-        instance=instance,
-    )
+    form_data = {
+        "media_type": data["media_type"],
+        "source": data["source"],
+        "media_id": data["media_id"],
+        "status": instance.status,
+        "score": instance.score,
+        "notes": instance.notes,
+    }
+    if not isinstance(getattr(model, "progress", None), property):
+        form_data["progress"] = instance.progress
+    form = form_class(form_data, instance=instance)
     if form.is_valid():
         form.save()
         return Response(
