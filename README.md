@@ -120,3 +120,6 @@ Pull requests are welcome! Whether it's fixing typos, improving documentation, o
 If you'd like to support the project financially:
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/fuzzygrim)
+
+<!-- START_RELEASE_BLOCK -->
+<!-- END_RELEASE_BLOCK -->

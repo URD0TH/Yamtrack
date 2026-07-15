@@ -3,11 +3,9 @@ name: App Tests
 on:
   pull_request:
     paths-ignore:
-      - ".github/workflows/**"
-  push:
-    branches:
-      - main
-      - dev
+      - '.github/**'
+      - 'mcp/**'
+      - 'wiki/**'
   workflow_dispatch:
 
 permissions:
@@ -41,12 +39,6 @@ jobs:
       matrix:
         python-version: ["3.12"]
     steps:
-      - name: Check workflow verification result
-        if: |
-          github.event_name == 'pull_request_target' && 
-          needs.check-workflow-changes.result == 'failure'
-        run: exit 1
-
       - name: Checkout repository
         uses: actions/checkout@v6
 
@@ -76,7 +68,7 @@ jobs:
 
       - name: Run Tests
         run: |
-          uv run coverage run src/manage.py test app users integrations lists events --parallel
+          uv run coverage run src/manage.py test app users integrations lists events api --parallel
 
       - name: Build Coverage Report
         run: |

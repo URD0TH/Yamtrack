@@ -17,3 +17,20 @@ requests.http
 TODO.txt
 .codex
 .cache
+
+# Cache directories
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.tox
+.nox
+.hypothesis
+htmlcov
+node_modules
+.playwright
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/

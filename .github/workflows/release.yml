@@ -1,0 +1,128 @@
+name: Release Container Image
+
+on:
+  workflow_run:
+    workflows: ["Build and Scan Container"]
+    types: [completed]
+
+permissions:
+  packages: write
+  contents: write
+  actions: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Get version from git
+        id: get-version
+        run: |
+          VERSION=$(git describe --tags 2>/dev/null || echo "dev")
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          IMAGE=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE=$IMAGE" >> $GITHUB_OUTPUT
+          echo "Using version: $VERSION, image: $IMAGE"
+
+      - name: Download Trivy report
+        uses: actions/download-artifact@v8
+        with:
+          name: trivy-report
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+          path: artifacts
+
+      - name: Download scan results
+        uses: actions/download-artifact@v8
+        with:
+          name: scan-results
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+          path: artifacts
+
+      - name: Extract summary from scan results
+        id: summary
+        run: |
+          SHORT_SUMMARY=$(awk '/^> /{print substr($0,3); exit}' artifacts/scan_results.md)
+          echo "SHORT_SUMMARY=${SHORT_SUMMARY}" >> $GITHUB_OUTPUT
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Log into GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ steps.get-version.outputs.IMAGE }}:${{ steps.get-version.outputs.VERSION }}
+            ghcr.io/${{ steps.get-version.outputs.IMAGE }}:latest
+          labels: |
+            org.opencontainers.image.description=${{ steps.summary.outputs.SHORT_SUMMARY }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: true
+          sbom: true
+          build-args: |
+            VERSION=${{ steps.get-version.outputs.VERSION }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ steps.get-version.outputs.VERSION }}
+          name: Release ${{ steps.get-version.outputs.VERSION }}
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(steps.get-version.outputs.VERSION, '-') }}
+          files: |
+            artifacts/trivy-report.json
+            artifacts/scan_results.md
+
+      - name: Update README with release block
+        run: |
+          VERSION="${{ steps.get-version.outputs.VERSION }}"
+          RELEASE_URL="https://github.com/${{ github.repository }}/releases/tag/${VERSION}"
+          ACTIONS_URL="https://github.com/${{ github.repository }}/actions"
+          awk -v release="$RELEASE_URL" -v actions="$ACTIONS_URL" -v ver="$VERSION" '
+            /START_RELEASE_BLOCK/ {
+              skip=1
+              print "<!-- START_RELEASE_BLOCK -->"
+              print "### \xf0\x9f\x93\xa6 Imagenes Disponibles"
+              print ""
+              print "| Version | Last Published |"
+              print "|---------|----------------|"
+              printf "| `latest` | \xe2\x9c\x85 [Build latest](%s) |\n", actions
+              printf "| `%s` | \xe2\x9c\x85 [Ver detalles](%s) |\n", ver, release
+              print ""
+              print "## \xf0\x9f\x94\x90 Seguridad"
+              printf "\xf0\x9f\x94\x97 [Ver ultimo reporte](%s)\n", actions
+              print "<!-- END_RELEASE_BLOCK -->"
+              next
+            }
+            /END_RELEASE_BLOCK/ && skip { skip=0; next }
+            !skip { print }
+          ' README.md > README.tmp && mv README.tmp README.md
+
+      - name: Commit README update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git diff --cached --quiet || git commit -m "docs: update release block [skip ci]" && git push
