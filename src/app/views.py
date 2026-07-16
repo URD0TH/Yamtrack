@@ -964,7 +964,16 @@ def statistics(request):
     status_pie_chart_data = stats.get_status_pie_chart_data(
         status_distribution,
     )
-    timeline = stats.get_timeline(user_media)
+    consumption_stats = stats.get_consumption_stats(user_media, media_count)
+
+    total = media_count["total"]
+    in_progress_count = stats.get_status_total(
+        status_distribution,
+        Status.IN_PROGRESS.value,
+    )
+    rated_percent = (
+        round(score_distribution["total_scored"] / total * 100) if total else None
+    )
 
     context = {
         "start_date": start_date,
@@ -975,7 +984,9 @@ def statistics(request):
         "top_rated": top_rated,
         "status_distribution": status_distribution,
         "status_pie_chart_data": status_pie_chart_data,
-        "timeline": timeline,
+        "consumption_stats": consumption_stats,
+        "in_progress_count": in_progress_count,
+        "rated_percent": rated_percent,
         "date_format_values": DateFormatChoices.values,
     }
 
