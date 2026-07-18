@@ -8,7 +8,6 @@ from django.utils.dateparse import parse_date
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from api.serializers.media import MediaSerializer
 from app import statistics as stats
 
 
@@ -41,22 +40,18 @@ def statistics(request):
         request.user, start_date, end_date,
     )
     media_type_distribution = stats.get_media_type_distribution(media_count)
-    score_distribution, top_rated = stats.get_score_distribution(user_media)
+    score_distribution, _top_rated = stats.get_score_distribution(user_media)
     status_distribution = stats.get_status_distribution(user_media)
     status_pie_chart_data = stats.get_status_pie_chart_data(status_distribution)
-    timeline = stats.get_timeline(user_media)
+    consumption_stats = stats.get_consumption_stats(user_media, media_count)
     activity_data = stats.get_activity_data(request.user, start_date, end_date)
 
     return Response({
         "media_count": media_count,
         "media_type_distribution": media_type_distribution,
         "score_distribution": score_distribution,
-        "top_rated": MediaSerializer(top_rated, many=True).data,
         "status_distribution": status_distribution,
         "status_pie_chart_data": status_pie_chart_data,
-        "timeline": {
-            month_year: MediaSerializer(media_list, many=True).data
-            for month_year, media_list in timeline.items()
-        },
+        "consumption_stats": consumption_stats,
         "activity_data": activity_data,
     })

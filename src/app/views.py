@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+from urllib.parse import urlencode
 
 from django.apps import apps
 from django.conf import settings
@@ -13,12 +14,10 @@ from django.http import Http404, HttpResponse, HttpResponseBadRequest, JsonRespo
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.dateparse import parse_date
-from django.utils.text import slugify
-from django.utils.timezone import datetime
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from app import config, helpers, history_processor
+from app import home as home_helpers
 from app import statistics as stats
 from app.forms import EpisodeForm, ManualItemForm, get_form_class
 from app.models import (
@@ -46,129 +45,6 @@ from users.models import (
 logger = logging.getLogger(__name__)
 
 
-def _build_home_section(key, media_types):
-    """Build home section payload."""
-    return {
-        "key": key,
-        "id": slugify(key),
-        "media_types": media_types,
-        "count": sum(media_list["total"] for media_list in media_types.values()),
-    }
-
-
-def _filter_home_media_types(media_types, predicate):
-    """Filter home media entries by predicate."""
-    filtered_media_types = {}
-    for media_type, media_list in media_types.items():
-        filtered_items = [media for media in media_list["items"] if predicate(media)]
-        if filtered_items:
-            filtered_media_types[media_type] = {
-                "items": filtered_items,
-                "total": len(filtered_items),
-            }
-    return filtered_media_types
-
-
-def _paginate_home_media_types(media_types, items_limit, page_start=0):
-    """Paginate already-grouped home media entries."""
-    paginated_media_types = {}
-    for media_type, media_list in media_types.items():
-        page_end = None if items_limit is None else page_start + items_limit
-        items = media_list["items"][page_start:page_end]
-
-        if items or (page_start > 0 and media_list["total"]):
-            paginated_media_types[media_type] = {
-                "items": items,
-                "total": media_list["total"],
-            }
-    return paginated_media_types
-
-
-def _is_incoming_media(media):
-    """Return True when media has a real upcoming release."""
-    return bool(media.next_event and not media.next_event.is_max_datetime)
-
-
-def _is_active_in_progress_media(media):
-    """Return True when media still has released backlog."""
-    if not _is_incoming_media(media):
-        return True
-
-    return media.max_progress is not None and media.progress < media.max_progress
-
-
-def _is_released_home_media(media, section_key):
-    """Return True when media should remain after hiding unreleased entries."""
-    if section_key == Status.IN_PROGRESS.value:
-        return _is_active_in_progress_media(media)
-
-    return not _is_incoming_media(media)
-
-
-def _get_home_section_media_types(
-    request,
-    sort_by,
-    section_key,
-    items_limit,
-    *,
-    hide_unreleased=False,
-):
-    """Return media types for a home section."""
-    media_types = BasicMedia.objects.get_home_status(
-        user=request.user,
-        status=section_key,
-        sort_by=sort_by,
-        items_limit=None if hide_unreleased else items_limit,
-    )
-
-    if not hide_unreleased:
-        return media_types
-
-    return _paginate_home_media_types(
-        _filter_home_media_types(
-            media_types,
-            lambda media: _is_released_home_media(media, section_key),
-        ),
-        items_limit,
-    )
-
-
-def _get_home_load_more_media_types(
-    request,
-    sort_by,
-    section_key,
-    items_limit,
-    media_type_to_load,
-    *,
-    hide_unreleased=False,
-):
-    """Return load-more payload for a specific home section/media type."""
-    media_types = BasicMedia.objects.get_home_status(
-        user=request.user,
-        status=section_key,
-        sort_by=sort_by,
-        items_limit=None if hide_unreleased else items_limit,
-        specific_media_type=media_type_to_load,
-    )
-
-    if not hide_unreleased:
-        return media_types
-
-    return _paginate_home_media_types(
-        _filter_home_media_types(
-            media_types,
-            lambda media: _is_released_home_media(media, section_key),
-        ),
-        items_limit,
-        page_start=items_limit,
-    )
-
-
-def _get_home_section_keys():
-    """Return ordered home section keys for current user."""
-    return [Status.IN_PROGRESS.value, Status.PLANNING.value]
-
-
 @require_GET
 def home(request):
     """Home page with media items in progress and planning."""
@@ -176,18 +52,15 @@ def home(request):
     media_type_to_load = request.GET.get("load_media_type")
     section_to_load = request.GET.get("load_status", Status.IN_PROGRESS.value)
     hide_unreleased_param = request.GET.get("hide_unreleased")
-    if hide_unreleased_param is not None:
-        hide_unreleased = request.user.update_preference(
-            "home_hide_unreleased",
-            hide_unreleased_param == "1",
-        )
-    else:
-        hide_unreleased = request.user.home_hide_unreleased
+    hide_unreleased = request.user.update_preference(
+        "home_hide_unreleased",
+        None if hide_unreleased_param is None else hide_unreleased_param == "true",
+    )
     items_limit = 14
 
     # If this is an HTMX request to load more items for a specific media type
     if request.headers.get("HX-Request") and media_type_to_load:
-        list_by_type = _get_home_load_more_media_types(
+        list_by_type = home_helpers.get_home_media_types(
             request,
             sort_by,
             section_to_load,
@@ -204,14 +77,13 @@ def home(request):
                     {"items": [], "total": 0},
                 ),
                 "home_status": section_to_load,
-                "hide_unreleased": hide_unreleased,
             },
         )
 
     home_sections = [
-        _build_home_section(
+        home_helpers.build_home_section(
             section_key,
-            _get_home_section_media_types(
+            home_helpers.get_home_media_types(
                 request,
                 sort_by,
                 section_key,
@@ -219,7 +91,7 @@ def home(request):
                 hide_unreleased=hide_unreleased,
             ),
         )
-        for section_key in _get_home_section_keys()
+        for section_key in (Status.IN_PROGRESS.value, Status.PLANNING.value)
     ]
 
     context = {
@@ -269,7 +141,7 @@ def progress_edit(request, media_type, instance_id):
             BasicMedia.objects.annotate_max_progress([media], media_type)
         BasicMedia.objects._annotate_next_event([media])
 
-        if not _is_active_in_progress_media(media):
+        if not home_helpers.is_active_in_progress_media(media):
             response = HttpResponse()
             response["HX-Retarget"] = f"#home-media-{media.item.media_type}-{media.id}"
             response["HX-Reswap"] = "delete"
@@ -277,7 +149,6 @@ def progress_edit(request, media_type, instance_id):
 
     context = {
         "media": media,
-        "hide_unreleased": hide_unreleased,
         "home_status": home_status,
     }
     return render(
@@ -1075,32 +946,7 @@ def delete_history_record(request, media_type, history_id):
 @require_GET
 def statistics(request):
     """Return the statistics page."""
-    # Set default date range to last year
-    timeformat = "%Y-%m-%d"
-    today = timezone.localdate()
-    one_year_ago = today.replace(year=today.year - 1)
-
-    # Get date parameters with defaults
-    start_date_str = request.GET.get("start-date") or one_year_ago.strftime(timeformat)
-    end_date_str = request.GET.get("end-date") or today.strftime(timeformat)
-
-    if start_date_str == "all" and end_date_str == "all":
-        start_date = None
-        end_date = None
-    else:
-        start_date = parse_date(start_date_str)
-        end_date = parse_date(end_date_str)
-
-        if start_date and end_date:
-            # Convert to datetime with timezone awareness
-            start_date = timezone.make_aware(
-                datetime.combine(start_date, datetime.min.time()),
-            )
-
-            # End date should be end of day
-            end_date = timezone.make_aware(
-                datetime.combine(end_date, datetime.max.time()),
-            )
+    start_date, end_date = stats.parse_activity_date_range(request)
 
     # Get all user media data in a single operation
     user_media, media_count = stats.get_user_media(
@@ -1118,25 +964,109 @@ def statistics(request):
     status_pie_chart_data = stats.get_status_pie_chart_data(
         status_distribution,
     )
-    timeline = stats.get_timeline(user_media)
+    consumption_stats = stats.get_consumption_stats(user_media, media_count)
 
-    activity_data = stats.get_activity_data(request.user, start_date, end_date)
+    total = media_count["total"]
+    in_progress_count = stats.get_status_total(
+        status_distribution,
+        Status.IN_PROGRESS.value,
+    )
+    rated_percent = (
+        round(score_distribution["total_scored"] / total * 100) if total else None
+    )
 
     context = {
         "start_date": start_date,
         "end_date": end_date,
         "media_count": media_count,
-        "activity_data": activity_data,
         "media_type_distribution": media_type_distribution,
         "score_distribution": score_distribution,
         "top_rated": top_rated,
         "status_distribution": status_distribution,
         "status_pie_chart_data": status_pie_chart_data,
-        "timeline": timeline,
+        "consumption_stats": consumption_stats,
+        "in_progress_count": in_progress_count,
+        "rated_percent": rated_percent,
         "date_format_values": DateFormatChoices.values,
     }
 
     return render(request, "app/statistics.html", context)
+
+
+@require_GET
+def journal(request):
+    """Return the journal page: a global feed of the user's tracking activity."""
+    start_date, end_date = stats.parse_activity_date_range(request)
+
+    items_per_page = 20
+    # Keyset pagination: the cursor points just past the previous page's last
+    # row, so each request reads at most one page per media type regardless of
+    # scroll depth (never re-scanning everything above the current page).
+    cursor = history_processor.parse_journal_cursor(request)
+    page_rows, has_next = history_processor.get_journal_page(
+        request.user,
+        start_date,
+        end_date,
+        limit=items_per_page,
+        cursor=cursor,
+    )
+    entries = history_processor.build_journal_entries(page_rows, request.user)
+    journal_days = history_processor.build_journal_days(entries, request.user)
+
+    # Preserve the active date range when the feed paginates via HTMX.
+    date_params = {
+        key: request.GET[key]
+        for key in ("start-date", "end-date")
+        if key in request.GET
+    }
+
+    # Cursor for the next page: the last row rendered on this one.
+    next_params = dict(date_params)
+    if page_rows:
+        last_date, last_type, last_id = page_rows[-1]
+        next_params["cursor_date"] = last_date.isoformat()
+        next_params["cursor_type"] = last_type
+        next_params["cursor_id"] = last_id
+
+    prev_day = request.GET.get("last_day", "")
+
+    context = {
+        "entries": entries,
+        "journal_days": journal_days,
+        # The previous page's last day, so a day split across pages isn't
+        # relabelled; the last day on this page, forwarded to the next page.
+        # Falls back to prev_day when this page rendered no days, so a day that
+        # spans an all-filtered page isn't shown twice.
+        "prev_day": prev_day,
+        "last_day": journal_days[-1]["day_iso"] if journal_days else prev_day,
+        "has_next": has_next,
+        "next_query": urlencode(next_params),
+        "filter_query": urlencode(date_params),
+        "start_date": start_date,
+        "end_date": end_date,
+    }
+
+    # The activity dashboard only appears on the full page, so skip its queries
+    # on the HTMX partial requests that load additional feed pages.
+    if request.headers.get("HX-Request"):
+        return render(request, "app/components/journal_items.html", context)
+
+    context.update(
+        {
+            "activity_data": stats.get_activity_data(
+                request.user,
+                start_date,
+                end_date,
+            ),
+            "activity_total": history_processor.get_journal_count(
+                request.user,
+                start_date,
+                end_date,
+            ),
+            "date_format_values": DateFormatChoices.values,
+        },
+    )
+    return render(request, "app/journal.html", context)
 
 
 @require_GET

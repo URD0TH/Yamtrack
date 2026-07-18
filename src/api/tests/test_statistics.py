@@ -10,10 +10,9 @@ MOCK_STATS = {
     "media_count": {},
     "media_type_distribution": [],
     "score_distribution": {},
-    "top_rated": [],
     "status_distribution": {},
     "status_pie_chart_data": [],
-    "timeline": [],
+    "consumption_stats": [],
     "activity_data": [],
 }
 
@@ -23,7 +22,7 @@ MOCK_STATS = {
 @patch("app.statistics.get_score_distribution", return_value=({}, []))
 @patch("app.statistics.get_status_distribution", return_value={})
 @patch("app.statistics.get_status_pie_chart_data", return_value=[])
-@patch("app.statistics.get_timeline", return_value={})
+@patch("app.statistics.get_consumption_stats", return_value=[])
 @patch("app.statistics.get_activity_data", return_value=[])
 class StatisticsApiTest(TestCase):
     """Test the statistics endpoint."""
