@@ -4,7 +4,7 @@
 <div x-show="trackOpen"
      @keydown.escape.window="trackOpen = false"
      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-  <div class="w-[400px] max-h-[90vh] px-4 md:px-0 relative z-60"
+  <div class="w-100 max-h-[90vh] px-4 md:px-0 relative z-60"
        @click.outside="trackOpen = false">
     <div class="bg-[#2a2f35] p-6 rounded-lg max-h-[70svh] overflow-y-auto">
 
@@ -41,7 +41,7 @@
       {% if episode.history %}
         <div class="mb-6">
           <label class="block text-sm font-medium text-gray-300 mb-3">Previous Watches</label>
-          <div class="max-h-[200px] overflow-y-auto space-y-2">
+          <div class="max-h-50 overflow-y-auto space-y-2">
             {% for entry in episode.history %}
               <div class="flex items-center justify-between bg-[#343a40] rounded-md p-3 border border-gray-600">
                 <div class="text-sm text-white">
