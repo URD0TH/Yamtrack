@@ -35,3 +35,6 @@ build/
 dist/
 *.egg-info/
 .eggs/
+
+# Dev scripts
+test-all.sh
