@@ -109,6 +109,15 @@ class GoodReadsImporter:
 
     def _process_row(self, row):
         """Process a single row from the CSV file."""
+        # Skip early (before hitting the provider) when the shelf can't be
+        # mapped to a Yamtrack status.
+        if self._determine_status(row) is None:
+            shelf = row["Exclusive Shelf"]
+            self.warnings.append(
+                f"{self._row_description(row)}: Unsupported shelf '{shelf}'.",
+            )
+            return
+
         default_source = Sources.HARDCOVER
         book = self._search_book(row, default_source)
 
@@ -181,13 +190,16 @@ class GoodReadsImporter:
         )
 
     def _determine_status(self, row):
+        """Map a Goodreads exclusive shelf to a status, or None if unmapped."""
         status_mapping = {
             "read": Status.COMPLETED,
             "currently-reading": Status.IN_PROGRESS,
             "to-read": Status.PLANNING,
+            "did-not-finish": Status.DROPPED,
         }
 
-        return status_mapping[row["Exclusive Shelf"]].value
+        status = status_mapping.get(row["Exclusive Shelf"])
+        return status.value if status else None
 
     def _parse_goodreads_date(self, date_str):
         """Parse GoodReads date string (YYYY/MM/DD) into datetime object."""
@@ -207,7 +219,7 @@ class GoodReadsImporter:
         book_status = self._determine_status(row)
         book_progress = (
             int(row["Number of Pages"])
-            if book_status is Status.COMPLETED.value
+            if book_status == Status.COMPLETED.value
             and row["Number of Pages"].isnumeric()
             else 0
         )
