@@ -51,8 +51,8 @@
                     No date provided
                   {% endif %}
                 </div>
-                <form method="post"
-                      action="{% url 'media_delete' %}?next={{ request.path }}">
+                <form hx-post="{% url 'media_delete' %}?next={{ request.path }}"
+                      hx-swap="none">
                   {% csrf_token %}
                   <input type="hidden" name="instance_id" value="{{ entry.id }}">
                   <input type="hidden" name="media_type" value="episode">
@@ -70,8 +70,8 @@
 
       {# Episode track form #}
       {# djlint:off #}
-      <form method="post"
-            action="{% url 'episode_save' %}?next={{ request.path }}"
+      <form hx-post="{% url 'episode_save' %}?next={{ request.path }}"
+            hx-swap="none"
             x-data="{
               trackTime: {% if TRACK_TIME %}true{% else %}false{% endif %},
               inputType: '{% if TRACK_TIME %}datetime-local{% else %}date{% endif %}',
