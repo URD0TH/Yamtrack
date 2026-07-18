@@ -6,6 +6,8 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from rest_framework import status
 
+from app.models import Episode
+
 SEASON_METADATA = {
     "image": "https://example.com/season1.jpg",
     "episodes": [{"episode_number": 1, "still_path": None}],
@@ -68,8 +70,6 @@ class EpisodeApiTest(TestCase):
     )
     def test_episode_update_end_date(self, _mock_get_metadata):
         """Re-sending the same episode with end_date updates its watch date."""
-        from app.models import Episode
-
         payload = {
             "media_id": "999",
             "source": "tmdb",

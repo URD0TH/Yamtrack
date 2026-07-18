@@ -40,7 +40,7 @@ def statistics(request):
         request.user, start_date, end_date,
     )
     media_type_distribution = stats.get_media_type_distribution(media_count)
-    score_distribution, top_rated = stats.get_score_distribution(user_media)
+    score_distribution, _top_rated = stats.get_score_distribution(user_media)
     status_distribution = stats.get_status_distribution(user_media)
     status_pie_chart_data = stats.get_status_pie_chart_data(status_distribution)
     consumption_stats = stats.get_consumption_stats(user_media, media_count)
