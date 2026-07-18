@@ -50,6 +50,47 @@ class ImportGoodreads(TestCase):
         self.assertEqual(read_book.status, Status.IN_PROGRESS.value)
         self.assertEqual(read_book.progress, 0)
 
+    def test_decimal_rating_scored(self):
+        """Test a modern decimal rating ("5.0") maps to the 0-10 scale."""
+        read_book = Book.objects.get(status=Status.COMPLETED.value)
+        self.assertEqual(read_book.score, 10)
+
+
+class ParseRating(TestCase):
+    """Test mapping of Goodreads 1-5 ratings onto Yamtrack's 0-10 scale."""
+
+    def setUp(self):
+        """Create user and importer for the tests."""
+        self.credentials = {"username": "test", "password": "12345"}
+        self.user = get_user_model().objects.create_user(**self.credentials)
+        self.importer = goodreads.GoodReadsImporter(None, self.user, "new")
+
+    def test_integer_and_decimal_ratings(self):
+        """Test both old ("5") and modern ("5.0") export formats scale by 2."""
+        self.assertEqual(self.importer._parse_rating("5"), 10)
+        self.assertEqual(self.importer._parse_rating("5.0"), 10)
+        self.assertEqual(self.importer._parse_rating("3"), 6)
+        self.assertEqual(self.importer._parse_rating("3.0"), 6)
+
+    def test_half_star_scales_linearly(self):
+        """Test half-star ratings scale linearly (3.5 -> 7, 4.5 -> 9)."""
+        self.assertEqual(self.importer._parse_rating("3.5"), 7)
+        self.assertEqual(self.importer._parse_rating("4.5"), 9)
+
+    def test_no_rating_returns_none(self):
+        """Test empty, zero and missing ratings map to no score."""
+        self.assertIsNone(self.importer._parse_rating("0"))
+        self.assertIsNone(self.importer._parse_rating("0.0"))
+        self.assertIsNone(self.importer._parse_rating(""))
+        self.assertIsNone(self.importer._parse_rating(None))
+
+    def test_out_of_range_and_garbage_returns_none(self):
+        """Test out-of-range and malformed ratings map to no score."""
+        self.assertIsNone(self.importer._parse_rating("10.0"))
+        self.assertIsNone(self.importer._parse_rating("6"))
+        self.assertIsNone(self.importer._parse_rating("5,0"))
+        self.assertIsNone(self.importer._parse_rating("abc"))
+
 
 class DetermineStatus(TestCase):
     """Test mapping of Goodreads exclusive shelves to Yamtrack statuses."""
